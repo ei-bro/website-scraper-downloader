@@ -6,14 +6,14 @@ dist/
 
 # Local scrape / CLI test output (never commit downloaded sites)
 downloads/
+
+# Ephemeral test output (Jest / integration; see src/*.test.ts — never commit)
 test-cli-output/
+test-integration-output/
+test-output*/
 
 # Test coverage
 coverage/
-
-# Jest / property-based test output dirs (ephemeral, do not commit)
-test-output-pbt/
-test-output-pbt-traversal/
 
 # IDE
 .vscode/
