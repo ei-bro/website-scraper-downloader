@@ -2,7 +2,7 @@
  * Resource parser for extracting URLs from HTML and CSS content
  */
 
-import { ParsedResources } from '../types';
+import type { ParsedResources } from '../types';
 import { resolveRelativeUrl } from '../url/validator';
 
 /**
@@ -32,15 +32,14 @@ export function parseHtml(content: string, baseUrl: string): ParsedResources {
           seenUrls.add(resolvedUrl);
           links.push(resolvedUrl);
         }
-      } catch (e) {
+      } catch (_e) {
         // Skip invalid URLs
       }
     }
   }
 
   // Extract URLs from src attributes (script, img, iframe, source tags)
-  const srcPattern =
-    /<(?:script|img|iframe|source)\s+[^>]*src\s*=\s*["']([^"']+)["'][^>]*>/gi;
+  const srcPattern = /<(?:script|img|iframe|source)\s+[^>]*src\s*=\s*["']([^"']+)["'][^>]*>/gi;
   while ((match = srcPattern.exec(content)) !== null) {
     const url = match[1].trim();
     if (url) {
@@ -50,7 +49,7 @@ export function parseHtml(content: string, baseUrl: string): ParsedResources {
           seenUrls.add(resolvedUrl);
           links.push(resolvedUrl);
         }
-      } catch (e) {
+      } catch (_e) {
         // Skip invalid URLs
       }
     }
@@ -61,7 +60,7 @@ export function parseHtml(content: string, baseUrl: string): ParsedResources {
   while ((match = styleAttrPattern.exec(content)) !== null) {
     const styleContent = match[1];
     const urlsInStyle = extractUrlsFromCss(styleContent, baseUrl);
-    urlsInStyle.forEach(url => {
+    urlsInStyle.forEach((url) => {
       if (!seenUrls.has(url)) {
         seenUrls.add(url);
         links.push(url);
@@ -74,7 +73,7 @@ export function parseHtml(content: string, baseUrl: string): ParsedResources {
   while ((match = styleTagPattern.exec(content)) !== null) {
     const styleContent = match[1];
     const urlsInStyle = extractUrlsFromCss(styleContent, baseUrl);
-    urlsInStyle.forEach(url => {
+    urlsInStyle.forEach((url) => {
       if (!seenUrls.has(url)) {
         seenUrls.add(url);
         links.push(url);
@@ -99,8 +98,7 @@ export function parseCss(content: string, baseUrl: string): ParsedResources {
   const seenUrls = new Set<string>();
 
   // Extract URLs from @import statements
-  const importPattern =
-    /@import\s+(?:url\s*\(\s*)?["']?([^"')]+)["']?\s*\)?[^;]*;/gi;
+  const importPattern = /@import\s+(?:url\s*\(\s*)?["']?([^"')]+)["']?\s*\)?[^;]*;/gi;
   let match;
   while ((match = importPattern.exec(content)) !== null) {
     const url = match[1].trim();
@@ -111,7 +109,7 @@ export function parseCss(content: string, baseUrl: string): ParsedResources {
           seenUrls.add(resolvedUrl);
           links.push(resolvedUrl);
         }
-      } catch (e) {
+      } catch (_e) {
         // Skip invalid URLs
       }
     }
@@ -128,7 +126,7 @@ export function parseCss(content: string, baseUrl: string): ParsedResources {
           seenUrls.add(resolvedUrl);
           links.push(resolvedUrl);
         }
-      } catch (e) {
+      } catch (_e) {
         // Skip invalid URLs
       }
     }
@@ -157,7 +155,7 @@ function extractUrlsFromCss(cssContent: string, baseUrl: string): string[] {
       try {
         const resolvedUrl = resolveRelativeUrl(baseUrl, url);
         urls.push(resolvedUrl);
-      } catch (e) {
+      } catch (_e) {
         // Skip invalid URLs
       }
     }

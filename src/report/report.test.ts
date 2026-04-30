@@ -4,8 +4,8 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import type { DownloadReport } from '../types';
 import { generateReport, saveReport } from './report';
-import { DownloadReport, FailureRecord } from '../types';
 
 describe('Report Generator', () => {
   describe('generateReport', () => {
@@ -175,9 +175,7 @@ describe('Report Generator', () => {
     it('should throw error for invalid output directory', async () => {
       const invalidDir = '/invalid/nonexistent/path/that/does/not/exist';
 
-      await expect(saveReport('Test', invalidDir)).rejects.toThrow(
-        'Failed to save report',
-      );
+      await expect(saveReport('Test', invalidDir)).rejects.toThrow('Failed to save report');
     });
   });
 });

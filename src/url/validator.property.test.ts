@@ -5,7 +5,7 @@
  */
 
 import * as fc from 'fast-check';
-import { validateUrl, extractDomain } from './validator';
+import { extractDomain, validateUrl } from './validator';
 
 describe('URL Validator - Property-Based Tests', () => {
   /**
@@ -16,7 +16,7 @@ describe('URL Validator - Property-Based Tests', () => {
   describe('Property 1: Valid URL Acceptance', () => {
     it('Feature: website-scraper-downloader, Property 1: Valid URL Acceptance', () => {
       fc.assert(
-        fc.property(fc.webUrl({ validSchemes: ['http', 'https'] }), url => {
+        fc.property(fc.webUrl({ validSchemes: ['http', 'https'] }), (url) => {
           const result = validateUrl(url);
 
           // Property: Valid URLs should be accepted
@@ -48,14 +48,11 @@ describe('URL Validator - Property-Based Tests', () => {
 
         // Invalid protocols
         fc
-          .tuple(
-            fc.constantFrom('ftp', 'file', 'mailto', 'data', 'javascript'),
-            fc.domain(),
-          )
+          .tuple(fc.constantFrom('ftp', 'file', 'mailto', 'data', 'javascript'), fc.domain())
           .map(([protocol, domain]) => `${protocol}://${domain}`),
 
         // Malformed URLs
-        fc.string().filter(s => {
+        fc.string().filter((s) => {
           // Filter out strings that might accidentally be valid URLs
           try {
             const parsed = new URL(s);
@@ -70,14 +67,14 @@ describe('URL Validator - Property-Based Tests', () => {
       );
 
       fc.assert(
-        fc.property(invalidUrlArbitrary, url => {
+        fc.property(invalidUrlArbitrary, (url) => {
           const result = validateUrl(url);
 
           // Property: Invalid URLs should be rejected with an error message
           expect(result.valid).toBe(false);
           expect(result.error).toBeDefined();
           expect(typeof result.error).toBe('string');
-          expect(result.error!.length).toBeGreaterThan(0);
+          expect(result.error?.length).toBeGreaterThan(0);
         }),
         { numRuns: 100 },
       );
@@ -92,7 +89,7 @@ describe('URL Validator - Property-Based Tests', () => {
   describe('Property 14: Domain Extraction', () => {
     it('Feature: website-scraper-downloader, Property 14: Domain Extraction', () => {
       fc.assert(
-        fc.property(fc.webUrl({ validSchemes: ['http', 'https'] }), url => {
+        fc.property(fc.webUrl({ validSchemes: ['http', 'https'] }), (url) => {
           const domain = extractDomain(url);
 
           // Property: Domain extraction should return a non-empty string
@@ -114,7 +111,7 @@ describe('URL Validator - Property-Based Tests', () => {
       const invalidUrlArbitrary = fc.oneof(
         fc.constant(''),
         fc.constant('not a url'),
-        fc.string().filter(s => {
+        fc.string().filter((s) => {
           try {
             new URL(s);
             return false;
@@ -125,7 +122,7 @@ describe('URL Validator - Property-Based Tests', () => {
       );
 
       fc.assert(
-        fc.property(invalidUrlArbitrary, url => {
+        fc.property(invalidUrlArbitrary, (url) => {
           // Property: Invalid URLs should throw an error
           expect(() => extractDomain(url)).toThrow();
         }),

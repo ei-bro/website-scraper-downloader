@@ -4,7 +4,6 @@
 
 import axios from 'axios';
 import { downloadResource } from './downloader';
-import { DownloadResult } from '../types';
 
 // Mock axios
 jest.mock('axios');
@@ -121,9 +120,7 @@ describe('downloadResource', () => {
         headers: {},
       });
 
-      const result = await downloadResource(
-        'https://example.com/forbidden.html',
-      );
+      const result = await downloadResource('https://example.com/forbidden.html');
 
       expect(result.success).toBe(false);
       expect(result.statusCode).toBe(403);
@@ -164,10 +161,7 @@ describe('downloadResource', () => {
       mockedAxios.isAxiosError.mockReturnValue(true);
       mockedAxios.get.mockRejectedValue(timeoutError);
 
-      const downloadPromise = downloadResource(
-        'https://example.com/slow.html',
-        5000,
-      );
+      const downloadPromise = downloadResource('https://example.com/slow.html', 5000);
 
       await jest.runAllTimersAsync();
 
@@ -206,9 +200,7 @@ describe('downloadResource', () => {
       mockedAxios.isAxiosError.mockReturnValue(true);
       mockedAxios.get.mockRejectedValue(dnsError);
 
-      const downloadPromise = downloadResource(
-        'https://invalid.example.com/page.html',
-      );
+      const downloadPromise = downloadResource('https://invalid.example.com/page.html');
 
       await jest.runAllTimersAsync();
 
@@ -365,10 +357,7 @@ describe('downloadResource', () => {
       mockedAxios.isAxiosError.mockReturnValue(true);
       mockedAxios.get.mockRejectedValue(timeoutError);
 
-      const downloadPromise = downloadResource(
-        'https://example.com/slow.html',
-        5000,
-      );
+      const downloadPromise = downloadResource('https://example.com/slow.html', 5000);
 
       // Fast-forward through all retries
       await jest.runAllTimersAsync();

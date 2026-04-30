@@ -5,14 +5,9 @@
  */
 
 import * as fc from 'fast-check';
-import * as path from 'path';
 import * as fs from 'fs/promises';
-import {
-  sanitizeFilename,
-  urlToLocalPath,
-  writeFile,
-  createDirectoryStructure,
-} from './writer';
+import * as path from 'path';
+import { createDirectoryStructure, sanitizeFilename, urlToLocalPath, writeFile } from './writer';
 
 describe('Path Normalizer - Property-Based Tests', () => {
   /**
@@ -42,8 +37,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
             fc.stringMatching(/^[a-z0-9]+$/),
           )
           .map(
-            ([prefix, charCode, suffix]) =>
-              `${prefix}${String.fromCharCode(charCode)}${suffix}`,
+            ([prefix, charCode, suffix]) => `${prefix}${String.fromCharCode(charCode)}${suffix}`,
           ),
 
         // Filenames with leading/trailing dots
@@ -56,16 +50,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
           .map(([prefix, middle, suffix]) => `${prefix}${middle}${suffix}`),
 
         // Reserved Windows names
-        fc.constantFrom(
-          'CON',
-          'PRN',
-          'AUX',
-          'NUL',
-          'COM1',
-          'COM9',
-          'LPT1',
-          'LPT9',
-        ),
+        fc.constantFrom('CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM9', 'LPT1', 'LPT9'),
 
         // Valid filenames (should pass through mostly unchanged)
         fc
@@ -77,7 +62,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
       );
 
       fc.assert(
-        fc.property(filenameArbitrary, filename => {
+        fc.property(filenameArbitrary, (filename) => {
           const sanitized = sanitizeFilename(filename);
 
           // Property: Result should be non-empty
@@ -104,10 +89,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
     it('should maintain uniqueness for different inputs', () => {
       // Generator for pairs of different filenames
       const differentFilenamesArbitrary = fc
-        .tuple(
-          fc.stringMatching(/^[a-z0-9<>:"|?*]+$/),
-          fc.stringMatching(/^[a-z0-9<>:"|?*]+$/),
-        )
+        .tuple(fc.stringMatching(/^[a-z0-9<>:"|?*]+$/), fc.stringMatching(/^[a-z0-9<>:"|?*]+$/))
         .filter(([a, b]) => a !== b);
 
       fc.assert(
@@ -155,7 +137,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
       const outputDir = '/test-output';
 
       fc.assert(
-        fc.property(longFilenameUrlArbitrary, url => {
+        fc.property(longFilenameUrlArbitrary, (url) => {
           const localPath = urlToLocalPath(url, outputDir);
           const filename = path.basename(localPath);
 
@@ -231,10 +213,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
               fc.stringMatching(/^[a-z0-9-]+$/),
               // Segments with spaces (will be encoded)
               fc
-                .tuple(
-                  fc.stringMatching(/^[a-z0-9]+$/),
-                  fc.stringMatching(/^[a-z0-9]+$/),
-                )
+                .tuple(fc.stringMatching(/^[a-z0-9]+$/), fc.stringMatching(/^[a-z0-9]+$/))
                 .map(([a, b]) => `${a} ${b}`),
               // Segments with special characters
               fc
@@ -251,9 +230,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
         )
         .map(([domain, pathParts, ext]) => {
           // Encode the path parts
-          const encodedPath = pathParts
-            .map(part => encodeURIComponent(part))
-            .join('/');
+          const encodedPath = pathParts.map((part) => encodeURIComponent(part)).join('/');
           return {
             original: pathParts,
             url: `https://${domain}/${encodedPath}/file.${ext}`,
@@ -287,24 +264,18 @@ describe('Path Normalizer - Property-Based Tests', () => {
 
     it('should handle double-encoded URLs', () => {
       fc.assert(
-        fc.property(
-          fc.domain(),
-          fc.stringMatching(/^[a-z0-9 ]+$/),
-          (domain, filename) => {
-            // Double encode the filename
-            const doubleEncoded = encodeURIComponent(
-              encodeURIComponent(filename),
-            );
-            const url = `https://${domain}/${doubleEncoded}.html`;
+        fc.property(fc.domain(), fc.stringMatching(/^[a-z0-9 ]+$/), (domain, filename) => {
+          // Double encode the filename
+          const doubleEncoded = encodeURIComponent(encodeURIComponent(filename));
+          const url = `https://${domain}/${doubleEncoded}.html`;
 
-            const outputDir = '/test-output';
-            const localPath = urlToLocalPath(url, outputDir);
+          const outputDir = '/test-output';
+          const localPath = urlToLocalPath(url, outputDir);
 
-            // Property: Should handle without throwing
-            expect(localPath).toBeDefined();
-            expect(localPath.startsWith(outputDir)).toBe(true);
-          },
-        ),
+          // Property: Should handle without throwing
+          expect(localPath).toBeDefined();
+          expect(localPath.startsWith(outputDir)).toBe(true);
+        }),
         { numRuns: 100 },
       );
     });
@@ -330,8 +301,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
           fc.constantFrom('html', 'css', 'js', 'png', 'jpg', 'woff', 'mp4'),
         )
         .map(([domain, pathParts, filename, ext]) => {
-          const pathStr =
-            pathParts.length > 0 ? `/${pathParts.join('/')}/` : '/';
+          const pathStr = pathParts.length > 0 ? `/${pathParts.join('/')}/` : '/';
           return {
             url: `https://${domain}${pathStr}${filename}.${ext}`,
             expectedParts: [...pathParts, `${filename}.${ext}`],
@@ -355,7 +325,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
           expect(actualParts.length).toBe(expectedParts.length);
 
           // Each component should match (after sanitization)
-          expectedParts.forEach((expected, index) => {
+          expectedParts.forEach((_expected, index) => {
             // Components should be similar (sanitization may change them slightly)
             expect(actualParts[index]).toBeDefined();
           });
@@ -399,7 +369,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
         });
 
       fc.assert(
-        fc.asyncProperty(nestedPathArbitrary, async filePath => {
+        fc.asyncProperty(nestedPathArbitrary, async (filePath) => {
           // Create directory structure
           await createDirectoryStructure(filePath);
 
@@ -434,11 +404,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
         .tuple(
           fc.domain(),
           fc.array(
-            fc.oneof(
-              fc.stringMatching(/^[a-z0-9-]+$/),
-              fc.constant('..'),
-              fc.constant('.'),
-            ),
+            fc.oneof(fc.stringMatching(/^[a-z0-9-]+$/), fc.constant('..'), fc.constant('.')),
             { minLength: 1, maxLength: 5 },
           ),
           fc.stringMatching(/^[a-z0-9-]+$/),
@@ -452,7 +418,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
       const outputDir = '/test-output';
 
       fc.assert(
-        fc.property(urlArbitrary, url => {
+        fc.property(urlArbitrary, (url) => {
           const localPath = urlToLocalPath(url, outputDir);
 
           // Property: Resolved path should be within output directory
@@ -469,18 +435,14 @@ describe('Path Normalizer - Property-Based Tests', () => {
       const testDir = path.join(__dirname, '../../test-output-pbt-traversal');
 
       const pathTraversalUrlArbitrary = fc
-        .tuple(
-          fc.domain(),
-          fc.integer({ min: 1, max: 10 }),
-          fc.stringMatching(/^[a-z0-9-]+$/),
-        )
+        .tuple(fc.domain(), fc.integer({ min: 1, max: 10 }), fc.stringMatching(/^[a-z0-9-]+$/))
         .map(([domain, dotdots, filename]) => {
           const traversal = '../'.repeat(dotdots);
           return `https://${domain}/${traversal}${filename}.html`;
         });
 
       fc.assert(
-        fc.asyncProperty(pathTraversalUrlArbitrary, async url => {
+        fc.asyncProperty(pathTraversalUrlArbitrary, async (url) => {
           const content = Buffer.from('test content');
           const result = await writeFile(url, content, testDir);
 

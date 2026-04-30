@@ -5,10 +5,10 @@
  */
 
 import * as fc from 'fast-check';
-import * as path from 'path';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 import { main } from './cli';
-import { CLIOptions } from './types';
+import type { CLIOptions } from './types';
 
 // Mock the scraper module to avoid actual network calls
 jest.mock('./crawl/scraper', () => ({
@@ -41,11 +41,9 @@ jest.mock('./url/validator', () => ({
 }));
 
 // Mock process.exit to prevent actual exit
-const mockExit = jest
-  .spyOn(process, 'exit')
-  .mockImplementation((code?: string | number | null) => {
-    throw new Error(`process.exit: ${code}`);
-  }) as unknown as jest.SpyInstance;
+const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: string | number | null) => {
+  throw new Error(`process.exit: ${code}`);
+}) as unknown as jest.SpyInstance;
 
 describe('CLI Interface - Property-Based Tests', () => {
   const testBaseDir = path.join(__dirname, '../test-output-pbt-cli');
@@ -103,7 +101,7 @@ describe('CLI Interface - Property-Based Tests', () => {
         });
 
       await fc.assert(
-        fc.asyncProperty(outputDirArbitrary, async outputDir => {
+        fc.asyncProperty(outputDirArbitrary, async (outputDir) => {
           // Ensure the directory doesn't exist before the test
           const existsBefore = await fs
             .access(outputDir)
@@ -126,10 +124,7 @@ describe('CLI Interface - Property-Based Tests', () => {
             await main(options);
           } catch (error) {
             // Ignore process.exit errors
-            if (
-              error instanceof Error &&
-              !error.message.includes('process.exit')
-            ) {
+            if (error instanceof Error && !error.message.includes('process.exit')) {
               throw error;
             }
           }
@@ -162,10 +157,10 @@ describe('CLI Interface - Property-Based Tests', () => {
           minLength: 2,
           maxLength: 5,
         })
-        .map(dirs => path.join(testBaseDir, ...dirs));
+        .map((dirs) => path.join(testBaseDir, ...dirs));
 
       await fc.assert(
-        fc.asyncProperty(deepPathArbitrary, async outputDir => {
+        fc.asyncProperty(deepPathArbitrary, async (outputDir) => {
           const options: CLIOptions = {
             url: 'https://example.com',
             output: outputDir,
@@ -177,10 +172,7 @@ describe('CLI Interface - Property-Based Tests', () => {
             await main(options);
           } catch (error) {
             // Ignore process.exit errors
-            if (
-              error instanceof Error &&
-              !error.message.includes('process.exit')
-            ) {
+            if (error instanceof Error && !error.message.includes('process.exit')) {
               throw error;
             }
           }
@@ -208,10 +200,10 @@ describe('CLI Interface - Property-Based Tests', () => {
           minLength: 1,
           maxLength: 2,
         })
-        .map(dirs => path.join(testBaseDir, ...dirs));
+        .map((dirs) => path.join(testBaseDir, ...dirs));
 
       await fc.assert(
-        fc.asyncProperty(dirArbitrary, async outputDir => {
+        fc.asyncProperty(dirArbitrary, async (outputDir) => {
           // Pre-create the directory
           await fs.mkdir(outputDir, { recursive: true });
 
@@ -234,10 +226,7 @@ describe('CLI Interface - Property-Based Tests', () => {
             await main(options);
           } catch (error) {
             // Ignore process.exit errors
-            if (
-              error instanceof Error &&
-              error.message.includes('process.exit')
-            ) {
+            if (error instanceof Error && error.message.includes('process.exit')) {
               // This is expected, directory creation succeeded
             } else {
               throw error;

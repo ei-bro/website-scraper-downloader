@@ -47,9 +47,7 @@ describe('normalizeUrl', () => {
   });
 
   it('should handle complex URLs with all features', () => {
-    const result = normalizeUrl(
-      'https://EXAMPLE.COM:443/path/?z=1&a=2#section',
-    );
+    const result = normalizeUrl('https://EXAMPLE.COM:443/path/?z=1&a=2#section');
     expect(result).toBe('https://example.com/path?a=2&z=1');
   });
 
@@ -67,67 +65,43 @@ describe('normalizeUrl', () => {
 
 describe('resolveRelativeUrl', () => {
   it('should resolve relative path against base URL', () => {
-    const result = resolveRelativeUrl(
-      'https://example.com/dir/page.html',
-      'image.png',
-    );
+    const result = resolveRelativeUrl('https://example.com/dir/page.html', 'image.png');
     expect(result).toBe('https://example.com/dir/image.png');
   });
 
   it('should resolve parent directory reference', () => {
-    const result = resolveRelativeUrl(
-      'https://example.com/dir/subdir/page.html',
-      '../image.png',
-    );
+    const result = resolveRelativeUrl('https://example.com/dir/subdir/page.html', '../image.png');
     expect(result).toBe('https://example.com/dir/image.png');
   });
 
   it('should resolve root-relative path', () => {
-    const result = resolveRelativeUrl(
-      'https://example.com/dir/page.html',
-      '/assets/image.png',
-    );
+    const result = resolveRelativeUrl('https://example.com/dir/page.html', '/assets/image.png');
     expect(result).toBe('https://example.com/assets/image.png');
   });
 
   it('should return absolute URL unchanged', () => {
     const absoluteUrl = 'https://other.com/image.png';
-    const result = resolveRelativeUrl(
-      'https://example.com/page.html',
-      absoluteUrl,
-    );
+    const result = resolveRelativeUrl('https://example.com/page.html', absoluteUrl);
     expect(result).toBe(absoluteUrl);
   });
 
   it('should handle query parameters in relative URL', () => {
-    const result = resolveRelativeUrl(
-      'https://example.com/page.html',
-      'api?param=value',
-    );
+    const result = resolveRelativeUrl('https://example.com/page.html', 'api?param=value');
     expect(result).toBe('https://example.com/api?param=value');
   });
 
   it('should handle fragment in relative URL', () => {
-    const result = resolveRelativeUrl(
-      'https://example.com/page.html',
-      'other.html#section',
-    );
+    const result = resolveRelativeUrl('https://example.com/page.html', 'other.html#section');
     expect(result).toBe('https://example.com/other.html#section');
   });
 
   it('should resolve current directory reference', () => {
-    const result = resolveRelativeUrl(
-      'https://example.com/dir/page.html',
-      './image.png',
-    );
+    const result = resolveRelativeUrl('https://example.com/dir/page.html', './image.png');
     expect(result).toBe('https://example.com/dir/image.png');
   });
 
   it('should handle protocol-relative URLs', () => {
-    const result = resolveRelativeUrl(
-      'https://example.com/page.html',
-      '//other.com/image.png',
-    );
+    const result = resolveRelativeUrl('https://example.com/page.html', '//other.com/image.png');
     expect(result).toBe('https://other.com/image.png');
   });
 

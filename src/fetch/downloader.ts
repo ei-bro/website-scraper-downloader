@@ -2,8 +2,8 @@
  * HTTP downloader module for fetching resources from URLs
  */
 
-import axios, { AxiosError } from 'axios';
-import { DownloadResult } from '../types';
+import axios, { type AxiosError } from 'axios';
+import type { DownloadResult } from '../types';
 
 /**
  * Default configuration for HTTP requests
@@ -36,7 +36,7 @@ export async function downloadResource(
         headers: {
           'User-Agent': DEFAULT_USER_AGENT,
         },
-        validateStatus: status => status < 600, // Accept all status codes < 600
+        validateStatus: (status) => status < 600, // Accept all status codes < 600
       });
 
       // Check if the response was successful (2xx status codes)
@@ -44,8 +44,7 @@ export async function downloadResource(
         return {
           success: true,
           content: Buffer.from(response.data),
-          contentType:
-            response.headers['content-type'] || 'application/octet-stream',
+          contentType: response.headers['content-type'] || 'application/octet-stream',
           statusCode: response.status,
         };
       }
@@ -63,10 +62,7 @@ export async function downloadResource(
         const axiosError = error as AxiosError;
 
         // Timeout error - retry with exponential backoff
-        if (
-          axiosError.code === 'ECONNABORTED' ||
-          axiosError.message.includes('timeout')
-        ) {
+        if (axiosError.code === 'ECONNABORTED' || axiosError.message.includes('timeout')) {
           lastError = {
             success: false,
             error: `Request timeout after ${timeout}ms`,
@@ -74,8 +70,8 @@ export async function downloadResource(
 
           // If we have retries left, wait with exponential backoff
           if (attempt < maxRetries) {
-            const backoffMs = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-            await new Promise(resolve => setTimeout(resolve, backoffMs));
+            const backoffMs = 2 ** attempt * 1000; // 1s, 2s, 4s
+            await new Promise((resolve) => setTimeout(resolve, backoffMs));
             continue;
           }
 
@@ -95,8 +91,8 @@ export async function downloadResource(
 
           // If we have retries left, wait with exponential backoff
           if (attempt < maxRetries) {
-            const backoffMs = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-            await new Promise(resolve => setTimeout(resolve, backoffMs));
+            const backoffMs = 2 ** attempt * 1000; // 1s, 2s, 4s
+            await new Promise((resolve) => setTimeout(resolve, backoffMs));
             continue;
           }
 
@@ -114,8 +110,7 @@ export async function downloadResource(
       // Handle non-axios errors - don't retry
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
       };
     }
   }

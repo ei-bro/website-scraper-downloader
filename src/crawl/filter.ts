@@ -32,12 +32,12 @@ export function shouldDownloadUrl(
     if (includeSubdomains) {
       // Check if urlDomain ends with .targetDomain
       // e.g., "sub.example.com" ends with ".example.com"
-      return urlDomain.endsWith('.' + targetDomain);
+      return urlDomain.endsWith(`.${targetDomain}`);
     }
 
     // Different domain and subdomains not included - skip
     return false;
-  } catch (error) {
+  } catch (_error) {
     // Invalid URL - skip
     return false;
   }
@@ -52,10 +52,7 @@ export function shouldDownloadUrl(
  *
  * Validates: Requirements 14.2, 14.3
  */
-export function shouldProcessDepth(
-  currentDepth: number,
-  maxDepth: number | null,
-): boolean {
+export function shouldProcessDepth(currentDepth: number, maxDepth: number | null): boolean {
   // No depth limit - always process
   if (maxDepth === null) {
     return true;
@@ -74,10 +71,7 @@ export function shouldProcessDepth(
  *
  * Validates: Requirements 14.3
  */
-export function shouldFollowLinks(
-  currentDepth: number,
-  maxDepth: number | null,
-): boolean {
+export function shouldFollowLinks(currentDepth: number, maxDepth: number | null): boolean {
   // No depth limit - always follow links
   if (maxDepth === null) {
     return true;

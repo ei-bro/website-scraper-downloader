@@ -3,9 +3,9 @@
  * Handles converting URLs to local paths and writing files to disk
  */
 
-import * as path from 'path';
 import * as fs from 'fs/promises';
-import { WriteResult } from '../types';
+import * as path from 'path';
+import type { WriteResult } from '../types';
 
 /**
  * Maximum filename length for most file systems
@@ -87,7 +87,7 @@ export function handleQueryParameters(url: string): string {
     const base = ext ? pathname.slice(0, -ext.length) : pathname;
 
     return `${base}_${queryHash}${ext}`;
-  } catch (error) {
+  } catch (_error) {
     // If URL parsing fails, return as-is
     return url;
   }
@@ -123,7 +123,7 @@ export function urlToLocalPath(url: string, outputDir: string): string {
 
     // If pathname ends with /, append index.html
     if (pathname.endsWith('/')) {
-      pathname = pathname + 'index.html';
+      pathname = `${pathname}index.html`;
     }
 
     // Split path into directory parts and filename
@@ -132,7 +132,7 @@ export function urlToLocalPath(url: string, outputDir: string): string {
     const directories = parts;
 
     // Sanitize each directory part
-    const sanitizedDirs = directories.map(dir => sanitizeFilename(dir));
+    const sanitizedDirs = directories.map((dir) => sanitizeFilename(dir));
 
     // Sanitize filename
     let sanitizedFilename = sanitizeFilename(filename);
@@ -140,15 +140,10 @@ export function urlToLocalPath(url: string, outputDir: string): string {
     // Handle filename length limits (Requirement 13.3)
     if (sanitizedFilename.length > MAX_FILENAME_LENGTH) {
       const ext = path.extname(sanitizedFilename);
-      const base = ext
-        ? sanitizedFilename.slice(0, -ext.length)
-        : sanitizedFilename;
+      const base = ext ? sanitizedFilename.slice(0, -ext.length) : sanitizedFilename;
 
       // Create a hash of the original filename for uniqueness
-      const hash = Buffer.from(filename)
-        .toString('base64')
-        .replace(/[+/=]/g, '')
-        .substring(0, 8);
+      const hash = Buffer.from(filename).toString('base64').replace(/[+/=]/g, '').substring(0, 8);
 
       // Truncate base and add hash
       const maxBaseLength = MAX_FILENAME_LENGTH - ext.length - hash.length - 1;
@@ -159,7 +154,7 @@ export function urlToLocalPath(url: string, outputDir: string): string {
     // Construct full path
     const relativePath = [...sanitizedDirs, sanitizedFilename].join(path.sep);
     return path.join(outputDir, relativePath);
-  } catch (error) {
+  } catch (_error) {
     // If URL parsing fails, create a safe fallback path
     const safeName = sanitizeFilename(url.replace(/[:/]/g, '_'));
     return path.join(outputDir, safeName);
@@ -175,9 +170,7 @@ export function urlToLocalPath(url: string, outputDir: string): string {
  *
  * Requirements: 7.1, 7.3
  */
-export async function createDirectoryStructure(
-  filePath: string,
-): Promise<void> {
+export async function createDirectoryStructure(filePath: string): Promise<void> {
   const directory = path.dirname(filePath);
   await fs.mkdir(directory, { recursive: true });
 }

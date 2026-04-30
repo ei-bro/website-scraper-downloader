@@ -5,7 +5,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { DownloadReport } from '../types';
+import type { DownloadReport } from '../types';
 
 /**
  * Generates a formatted text report from download statistics
@@ -34,8 +34,7 @@ export function generateReport(report: DownloadReport): string {
   // Size information
   const sizeMB = (report.totalSize / (1024 * 1024)).toFixed(2);
   const sizeKB = (report.totalSize / 1024).toFixed(2);
-  const sizeDisplay =
-    report.totalSize >= 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`;
+  const sizeDisplay = report.totalSize >= 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`;
   lines.push(`  Total size: ${sizeDisplay} (${report.totalSize} bytes)`);
   lines.push('');
 
@@ -43,9 +42,7 @@ export function generateReport(report: DownloadReport): string {
   const durationSeconds = (report.duration / 1000).toFixed(2);
   const durationMinutes = (report.duration / 60000).toFixed(2);
   const durationDisplay =
-    report.duration >= 60000
-      ? `${durationMinutes} minutes`
-      : `${durationSeconds} seconds`;
+    report.duration >= 60000 ? `${durationMinutes} minutes` : `${durationSeconds} seconds`;
   lines.push(`  Duration: ${durationDisplay}`);
   lines.push('');
 
@@ -85,10 +82,7 @@ export function generateReport(report: DownloadReport): string {
  *
  * Validates: Requirements 15.5
  */
-export async function saveReport(
-  report: string,
-  outputDir: string,
-): Promise<void> {
+export async function saveReport(report: string, outputDir: string): Promise<void> {
   const reportPath = path.join(outputDir, 'download-report.txt');
 
   try {

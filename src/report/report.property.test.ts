@@ -7,8 +7,8 @@
 import * as fc from 'fast-check';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import type { DownloadReport, FailureRecord } from '../types';
 import { generateReport, saveReport } from './report';
-import { DownloadReport, FailureRecord } from '../types';
 
 describe('Report Generator - Property-Based Tests', () => {
   /**
@@ -38,20 +38,17 @@ describe('Report Generator - Property-Based Tests', () => {
           failures: fc.array(failureRecordArbitrary, { maxLength: 100 }),
           duration: fc.nat({ max: 3600000 }), // Up to 1 hour
         })
-        .filter(report => {
+        .filter((report) => {
           // Ensure consistency: totalFiles = successfulDownloads + failedDownloads
-          return (
-            report.totalFiles ===
-            report.successfulDownloads + report.failedDownloads
-          );
+          return report.totalFiles === report.successfulDownloads + report.failedDownloads;
         })
-        .filter(report => {
+        .filter((report) => {
           // Ensure failures array length matches failedDownloads count
           return report.failures.length === report.failedDownloads;
         });
 
       fc.assert(
-        fc.property(downloadReportArbitrary, report => {
+        fc.property(downloadReportArbitrary, (report) => {
           const result = generateReport(report);
 
           // Property: Report must be a non-empty string
@@ -59,19 +56,13 @@ describe('Report Generator - Property-Based Tests', () => {
           expect(result.length).toBeGreaterThan(0);
 
           // Property: Report must contain total files (Requirement 15.2)
-          expect(result).toContain(
-            `Total files discovered: ${report.totalFiles}`,
-          );
+          expect(result).toContain(`Total files discovered: ${report.totalFiles}`);
 
           // Property: Report must contain successful downloads count
-          expect(result).toContain(
-            `Successfully downloaded: ${report.successfulDownloads}`,
-          );
+          expect(result).toContain(`Successfully downloaded: ${report.successfulDownloads}`);
 
           // Property: Report must contain failed downloads count
-          expect(result).toContain(
-            `Failed downloads: ${report.failedDownloads}`,
-          );
+          expect(result).toContain(`Failed downloads: ${report.failedDownloads}`);
 
           // Property: Report must contain total size (Requirement 15.3)
           expect(result).toContain('Total size:');
@@ -81,7 +72,7 @@ describe('Report Generator - Property-Based Tests', () => {
           expect(result).toContain('Duration:');
 
           // Property: Report must contain all failure records (Requirement 15.4)
-          report.failures.forEach(failure => {
+          report.failures.forEach((failure) => {
             expect(result).toContain(failure.url);
             expect(result).toContain(failure.error);
             if (failure.statusCode !== undefined) {
@@ -119,7 +110,7 @@ describe('Report Generator - Property-Based Tests', () => {
             ),
             duration: fc.nat({ max: 600000 }),
           }),
-          report => {
+          (report) => {
             // Generate report twice with same input
             const result1 = generateReport(report);
             const result2 = generateReport(report);
@@ -149,7 +140,7 @@ describe('Report Generator - Property-Based Tests', () => {
 
     it('should handle edge case with zero downloads', () => {
       fc.assert(
-        fc.property(fc.nat({ max: 100000 }), duration => {
+        fc.property(fc.nat({ max: 100000 }), (duration) => {
           const report: DownloadReport = {
             totalFiles: 0,
             successfulDownloads: 0,
@@ -177,14 +168,11 @@ describe('Report Generator - Property-Based Tests', () => {
           fc.integer({ min: 1, max: 100 }),
           fc.nat({ max: 600000 }),
           (failureCount, duration) => {
-            const failures: FailureRecord[] = Array.from(
-              { length: failureCount },
-              (_, i) => ({
-                url: `https://example.com/file${i}.html`,
-                error: `Error ${i}`,
-                statusCode: 404,
-              }),
-            );
+            const failures: FailureRecord[] = Array.from({ length: failureCount }, (_, i) => ({
+              url: `https://example.com/file${i}.html`,
+              error: `Error ${i}`,
+              statusCode: 404,
+            }));
 
             const report: DownloadReport = {
               totalFiles: failureCount,
@@ -199,7 +187,7 @@ describe('Report Generator - Property-Based Tests', () => {
 
             // Property: Report should list all failures
             expect(result).toContain('Failed Downloads:');
-            failures.forEach(failure => {
+            failures.forEach((failure) => {
               expect(result).toContain(failure.url);
               expect(result).toContain(failure.error);
             });
@@ -217,7 +205,7 @@ describe('Report Generator - Property-Based Tests', () => {
             fc.integer({ min: 1024, max: 1024 * 1024 }), // KB range
             fc.integer({ min: 1024 * 1024, max: 1024 * 1024 * 1024 }), // MB range
           ),
-          totalSize => {
+          (totalSize) => {
             const report: DownloadReport = {
               totalFiles: 10,
               successfulDownloads: 10,
@@ -251,7 +239,7 @@ describe('Report Generator - Property-Based Tests', () => {
             fc.nat({ max: 60000 }), // Under 1 minute
             fc.integer({ min: 60000, max: 3600000 }), // 1 minute to 1 hour
           ),
-          duration => {
+          (duration) => {
             const report: DownloadReport = {
               totalFiles: 10,
               successfulDownloads: 10,
@@ -299,7 +287,7 @@ describe('Report Generator - Property-Based Tests', () => {
     it('Feature: website-scraper-downloader, Property 26: Report Persistence', () => {
       fc.assert(
         fc.asyncProperty(
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => {
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => {
             // Filter out strings with invalid path characters
             return !/[<>:"|?*\x00-\x1f]/.test(s) && s !== '.' && s !== '..';
           }),
@@ -338,7 +326,7 @@ describe('Report Generator - Property-Based Tests', () => {
     it('should persist reports with special characters', () => {
       fc.assert(
         fc.asyncProperty(
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => {
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => {
             return !/[<>:"|?*\x00-\x1f]/.test(s) && s !== '.' && s !== '..';
           }),
           fc.string({ minLength: 0, maxLength: 5000 }),
@@ -362,7 +350,7 @@ describe('Report Generator - Property-Based Tests', () => {
     it('should overwrite existing reports', () => {
       fc.assert(
         fc.asyncProperty(
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => {
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => {
             return !/[<>:"|?*\x00-\x1f]/.test(s) && s !== '.' && s !== '..';
           }),
           fc.string({ minLength: 1, maxLength: 1000 }),
@@ -392,10 +380,10 @@ describe('Report Generator - Property-Based Tests', () => {
     it('should handle empty reports', () => {
       fc.assert(
         fc.asyncProperty(
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => {
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => {
             return !/[<>:"|?*\x00-\x1f]/.test(s) && s !== '.' && s !== '..';
           }),
-          async dirName => {
+          async (dirName) => {
             const outputDir = path.join(testOutputBase, dirName);
             await fs.mkdir(outputDir, { recursive: true });
 
@@ -419,10 +407,10 @@ describe('Report Generator - Property-Based Tests', () => {
     it('should handle very large reports', () => {
       fc.assert(
         fc.asyncProperty(
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => {
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => {
             return !/[<>:"|?*\x00-\x1f]/.test(s) && s !== '.' && s !== '..';
           }),
-          async dirName => {
+          async (dirName) => {
             const outputDir = path.join(testOutputBase, dirName);
             await fs.mkdir(outputDir, { recursive: true });
 

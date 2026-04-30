@@ -27,7 +27,7 @@ describe('URL Normalizer - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 3,
           })
-          .map(parts => parts.join('/')),
+          .map((parts) => parts.join('/')),
 
         // Paths with file extensions
         fc
@@ -39,10 +39,7 @@ describe('URL Normalizer - Property-Based Tests', () => {
 
         // Parent directory references
         fc
-          .tuple(
-            fc.constantFrom('..', '../..'),
-            fc.stringMatching(/^[a-z0-9-]+$/),
-          )
+          .tuple(fc.constantFrom('..', '../..'), fc.stringMatching(/^[a-z0-9-]+$/))
           .map(([parent, file]) => `${parent}/${file}`),
 
         // Root-relative paths
@@ -51,37 +48,33 @@ describe('URL Normalizer - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 3,
           })
-          .map(parts => `/${parts.join('/')}`),
+          .map((parts) => `/${parts.join('/')}`),
 
         // Current directory references
-        fc.stringMatching(/^[a-z0-9-]+$/).map(file => `./${file}`),
+        fc.stringMatching(/^[a-z0-9-]+$/).map((file) => `./${file}`),
 
         // Empty relative URL (should resolve to base)
         fc.constant(''),
       );
 
       fc.assert(
-        fc.property(
-          baseUrlArbitrary,
-          relativeUrlArbitrary,
-          (baseUrl, relativeUrl) => {
-            const resolved = resolveRelativeUrl(baseUrl, relativeUrl);
+        fc.property(baseUrlArbitrary, relativeUrlArbitrary, (baseUrl, relativeUrl) => {
+          const resolved = resolveRelativeUrl(baseUrl, relativeUrl);
 
-            // Property: Result should be a valid absolute URL
-            expect(typeof resolved).toBe('string');
-            expect(resolved.length).toBeGreaterThan(0);
+          // Property: Result should be a valid absolute URL
+          expect(typeof resolved).toBe('string');
+          expect(resolved.length).toBeGreaterThan(0);
 
-            // Property: Result should be parseable as a URL
-            expect(() => new URL(resolved)).not.toThrow();
+          // Property: Result should be parseable as a URL
+          expect(() => new URL(resolved)).not.toThrow();
 
-            // Property: Result should have http or https protocol
-            const parsedResolved = new URL(resolved);
-            expect(['http:', 'https:']).toContain(parsedResolved.protocol);
+          // Property: Result should have http or https protocol
+          const parsedResolved = new URL(resolved);
+          expect(['http:', 'https:']).toContain(parsedResolved.protocol);
 
-            // Property: Result should have a hostname
-            expect(parsedResolved.hostname.length).toBeGreaterThan(0);
-          },
-        ),
+          // Property: Result should have a hostname
+          expect(parsedResolved.hostname.length).toBeGreaterThan(0);
+        }),
         { numRuns: 100 },
       );
     });
@@ -133,61 +126,47 @@ describe('URL Normalizer - Property-Based Tests', () => {
           }),
           fc.option(fc.boolean(), { nil: null }), // trailing slash
           fc.option(
-            fc.dictionary(
-              fc.stringMatching(/^[a-z]+$/),
-              fc.stringMatching(/^[a-z0-9]+$/),
-            ),
+            fc.dictionary(fc.stringMatching(/^[a-z]+$/), fc.stringMatching(/^[a-z0-9]+$/)),
             { nil: null },
           ), // query params
           fc.option(fc.stringMatching(/^[a-z0-9-]+$/), { nil: null }), // fragment
         )
-        .map(
-          ([
-            protocol,
-            domain,
-            port,
-            pathParts,
-            trailingSlash,
-            queryParams,
-            fragment,
-          ]) => {
-            // Randomly uppercase domain
-            const domainCase =
-              Math.random() > 0.5 ? domain.toUpperCase() : domain;
+        .map(([protocol, domain, port, pathParts, trailingSlash, queryParams, fragment]) => {
+          // Randomly uppercase domain
+          const domainCase = Math.random() > 0.5 ? domain.toUpperCase() : domain;
 
-            let url = `${protocol}://${domainCase}`;
+          let url = `${protocol}://${domainCase}`;
 
-            // Add port if present
-            if (port !== null) {
-              url += `:${port}`;
-            }
+          // Add port if present
+          if (port !== null) {
+            url += `:${port}`;
+          }
 
-            // Add path
-            const path = pathParts.length > 0 ? `/${pathParts.join('/')}` : '';
-            url += path;
+          // Add path
+          const path = pathParts.length > 0 ? `/${pathParts.join('/')}` : '';
+          url += path;
 
-            // Add trailing slash if specified and path is not empty
-            if (trailingSlash && path.length > 0) {
-              url += '/';
-            }
+          // Add trailing slash if specified and path is not empty
+          if (trailingSlash && path.length > 0) {
+            url += '/';
+          }
 
-            // Add query parameters
-            if (queryParams !== null && Object.keys(queryParams).length > 0) {
-              const params = new URLSearchParams(queryParams);
-              url += `?${params.toString()}`;
-            }
+          // Add query parameters
+          if (queryParams !== null && Object.keys(queryParams).length > 0) {
+            const params = new URLSearchParams(queryParams);
+            url += `?${params.toString()}`;
+          }
 
-            // Add fragment
-            if (fragment !== null) {
-              url += `#${fragment}`;
-            }
+          // Add fragment
+          if (fragment !== null) {
+            url += `#${fragment}`;
+          }
 
-            return url;
-          },
-        );
+          return url;
+        });
 
       fc.assert(
-        fc.property(unnormalizedUrlArbitrary, url => {
+        fc.property(unnormalizedUrlArbitrary, (url) => {
           const normalized1 = normalizeUrl(url);
           const normalized2 = normalizeUrl(normalized1);
           const normalized3 = normalizeUrl(normalized2);
@@ -228,7 +207,7 @@ describe('URL Normalizer - Property-Based Tests', () => {
         });
 
       fc.assert(
-        fc.property(urlWithPathArbitrary, url => {
+        fc.property(urlWithPathArbitrary, (url) => {
           // Ensure URL has a non-root path
           const parsed = new URL(url);
           if (parsed.pathname === '/' || parsed.pathname === '') {
@@ -237,7 +216,7 @@ describe('URL Normalizer - Property-Based Tests', () => {
 
           // Create versions with and without trailing slash
           const withoutSlash = url.endsWith('/') ? url.slice(0, -1) : url;
-          const withSlash = url.endsWith('/') ? url : url + '/';
+          const withSlash = url.endsWith('/') ? url : `${url}/`;
 
           const normalizedWithout = normalizeUrl(withoutSlash);
           const normalizedWith = normalizeUrl(withSlash);
@@ -257,7 +236,7 @@ describe('URL Normalizer - Property-Based Tests', () => {
 
     it('should preserve trailing slash for root paths', () => {
       fc.assert(
-        fc.property(fc.webUrl({ validSchemes: ['http', 'https'] }), baseUrl => {
+        fc.property(fc.webUrl({ validSchemes: ['http', 'https'] }), (baseUrl) => {
           const parsed = new URL(baseUrl);
           parsed.pathname = '/';
           const rootUrl = parsed.href;

@@ -5,11 +5,7 @@
  */
 
 import * as fc from 'fast-check';
-import {
-  shouldDownloadUrl,
-  shouldProcessDepth,
-  shouldFollowLinks,
-} from './filter';
+import { shouldDownloadUrl, shouldFollowLinks, shouldProcessDepth } from './filter';
 
 describe('Domain Filtering - Property-Based Tests', () => {
   /**
@@ -32,11 +28,7 @@ describe('Domain Filtering - Property-Based Tests', () => {
           includeSubdomainsArbitrary,
           fc.webUrl({ validSchemes: ['http', 'https'] }),
           (targetDomain, includeSubdomains, url) => {
-            const result = shouldDownloadUrl(
-              url,
-              targetDomain,
-              includeSubdomains,
-            );
+            const result = shouldDownloadUrl(url, targetDomain, includeSubdomains);
 
             // Extract the URL's domain
             let urlDomain: string;
@@ -56,13 +48,13 @@ describe('Domain Filtering - Property-Based Tests', () => {
             }
 
             // Property 2: Different domain (not a subdomain) should be rejected
-            if (!urlDomain.endsWith('.' + targetDomain)) {
+            if (!urlDomain.endsWith(`.${targetDomain}`)) {
               expect(result).toBe(false);
               return;
             }
 
             // Property 3: Subdomain handling depends on includeSubdomains flag
-            if (urlDomain.endsWith('.' + targetDomain)) {
+            if (urlDomain.endsWith(`.${targetDomain}`)) {
               if (includeSubdomains) {
                 expect(result).toBe(true);
               } else {
@@ -87,12 +79,8 @@ describe('Domain Filtering - Property-Based Tests', () => {
             const url2 = `https://${domain}${path2}`;
 
             // Property: URLs from the same domain should both be allowed
-            expect(shouldDownloadUrl(url1, domain, includeSubdomains)).toBe(
-              true,
-            );
-            expect(shouldDownloadUrl(url2, domain, includeSubdomains)).toBe(
-              true,
-            );
+            expect(shouldDownloadUrl(url1, domain, includeSubdomains)).toBe(true);
+            expect(shouldDownloadUrl(url2, domain, includeSubdomains)).toBe(true);
           },
         ),
         { numRuns: 100 },
@@ -103,7 +91,7 @@ describe('Domain Filtering - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           fc.domain(),
-          fc.string({ minLength: 1, maxLength: 10 }).filter(s => {
+          fc.string({ minLength: 1, maxLength: 10 }).filter((s) => {
             // Filter out strings with dots, whitespace, or invalid hostname characters
             return !s.includes('.') && /^[a-z0-9-]+$/i.test(s);
           }),
@@ -111,14 +99,10 @@ describe('Domain Filtering - Property-Based Tests', () => {
             const subdomainUrl = `https://${subPrefix}.${baseDomain}/page`;
 
             // Property: With includeSubdomains=false, subdomain should be rejected
-            expect(shouldDownloadUrl(subdomainUrl, baseDomain, false)).toBe(
-              false,
-            );
+            expect(shouldDownloadUrl(subdomainUrl, baseDomain, false)).toBe(false);
 
             // Property: With includeSubdomains=true, subdomain should be allowed
-            expect(shouldDownloadUrl(subdomainUrl, baseDomain, true)).toBe(
-              true,
-            );
+            expect(shouldDownloadUrl(subdomainUrl, baseDomain, true)).toBe(true);
           },
         ),
         { numRuns: 100 },
@@ -140,46 +124,36 @@ describe('Depth Tracking - Property-Based Tests', () => {
       const depthArbitrary = fc.nat({ max: 100 });
 
       // Generator for maxDepth (null or a positive number)
-      const maxDepthArbitrary = fc.oneof(
-        fc.constant(null),
-        fc.nat({ max: 50 }),
-      );
+      const maxDepthArbitrary = fc.oneof(fc.constant(null), fc.nat({ max: 50 }));
 
       fc.assert(
-        fc.property(
-          depthArbitrary,
-          maxDepthArbitrary,
-          (currentDepth, maxDepth) => {
-            const shouldProcess = shouldProcessDepth(currentDepth, maxDepth);
+        fc.property(depthArbitrary, maxDepthArbitrary, (currentDepth, maxDepth) => {
+          const shouldProcess = shouldProcessDepth(currentDepth, maxDepth);
 
-            // Property 1: With no depth limit (null), all depths should be processed
-            if (maxDepth === null) {
-              expect(shouldProcess).toBe(true);
-              return;
-            }
+          // Property 1: With no depth limit (null), all depths should be processed
+          if (maxDepth === null) {
+            expect(shouldProcess).toBe(true);
+            return;
+          }
 
-            // Property 2: Depths within limit should be processed
-            if (currentDepth <= maxDepth) {
-              expect(shouldProcess).toBe(true);
-            } else {
-              // Property 3: Depths exceeding limit should not be processed
-              expect(shouldProcess).toBe(false);
-            }
-          },
-        ),
+          // Property 2: Depths within limit should be processed
+          if (currentDepth <= maxDepth) {
+            expect(shouldProcess).toBe(true);
+          } else {
+            // Property 3: Depths exceeding limit should not be processed
+            expect(shouldProcess).toBe(false);
+          }
+        }),
         { numRuns: 100 },
       );
     });
 
     it('should handle depth 0 correctly', () => {
       fc.assert(
-        fc.property(
-          fc.oneof(fc.constant(null), fc.nat({ max: 50 })),
-          maxDepth => {
-            // Property: Depth 0 (starting URL) should always be processed
-            expect(shouldProcessDepth(0, maxDepth)).toBe(true);
-          },
-        ),
+        fc.property(fc.oneof(fc.constant(null), fc.nat({ max: 50 })), (maxDepth) => {
+          // Property: Depth 0 (starting URL) should always be processed
+          expect(shouldProcessDepth(0, maxDepth)).toBe(true);
+        }),
         { numRuns: 100 },
       );
     });
@@ -197,40 +171,33 @@ describe('Depth Tracking - Property-Based Tests', () => {
       const depthArbitrary = fc.nat({ max: 100 });
 
       // Generator for maxDepth (null or a positive number)
-      const maxDepthArbitrary = fc.oneof(
-        fc.constant(null),
-        fc.nat({ max: 50 }),
-      );
+      const maxDepthArbitrary = fc.oneof(fc.constant(null), fc.nat({ max: 50 }));
 
       fc.assert(
-        fc.property(
-          depthArbitrary,
-          maxDepthArbitrary,
-          (currentDepth, maxDepth) => {
-            const shouldFollow = shouldFollowLinks(currentDepth, maxDepth);
+        fc.property(depthArbitrary, maxDepthArbitrary, (currentDepth, maxDepth) => {
+          const shouldFollow = shouldFollowLinks(currentDepth, maxDepth);
 
-            // Property 1: With no depth limit (null), all links should be followed
-            if (maxDepth === null) {
-              expect(shouldFollow).toBe(true);
-              return;
-            }
+          // Property 1: With no depth limit (null), all links should be followed
+          if (maxDepth === null) {
+            expect(shouldFollow).toBe(true);
+            return;
+          }
 
-            // Property 2: Links should be followed only if current depth < maxDepth
-            if (currentDepth < maxDepth) {
-              expect(shouldFollow).toBe(true);
-            } else {
-              // Property 3: At or beyond maxDepth, links should not be followed
-              expect(shouldFollow).toBe(false);
-            }
-          },
-        ),
+          // Property 2: Links should be followed only if current depth < maxDepth
+          if (currentDepth < maxDepth) {
+            expect(shouldFollow).toBe(true);
+          } else {
+            // Property 3: At or beyond maxDepth, links should not be followed
+            expect(shouldFollow).toBe(false);
+          }
+        }),
         { numRuns: 100 },
       );
     });
 
     it('should enforce that resources at maxDepth do not follow links', () => {
       fc.assert(
-        fc.property(fc.nat({ max: 50 }), maxDepth => {
+        fc.property(fc.nat({ max: 50 }), (maxDepth) => {
           // Property: Resource at exactly maxDepth should not follow links
           expect(shouldFollowLinks(maxDepth, maxDepth)).toBe(false);
 
@@ -245,7 +212,7 @@ describe('Depth Tracking - Property-Based Tests', () => {
 
     it('should handle unlimited depth correctly', () => {
       fc.assert(
-        fc.property(fc.nat({ max: 1000 }), depth => {
+        fc.property(fc.nat({ max: 1000 }), (depth) => {
           // Property: With unlimited depth (null), all depths should follow links
           expect(shouldFollowLinks(depth, null)).toBe(true);
         }),

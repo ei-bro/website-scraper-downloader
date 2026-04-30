@@ -5,10 +5,10 @@
  */
 
 import * as fc from 'fast-check';
-import { scrape } from './scraper';
 import * as downloader from '../fetch/downloader';
 import * as writer from '../fs/writer';
-import { DownloadResult, WriteResult } from '../types';
+import type { DownloadResult, WriteResult } from '../types';
+import { scrape } from './scraper';
 
 // Mock dependencies
 jest.mock('../fetch/downloader');
@@ -40,13 +40,12 @@ describe('Scraper Controller - Property-Based Tests', () => {
               { length: totalResources - 1 },
               (_, i) => `https://example.com/page${i}`,
             );
-            const html = `<html>${urls.map(url => `<a href="${url}">Link</a>`).join('')}</html>`;
+            const html = `<html>${urls.map((url) => `<a href="${url}">Link</a>`).join('')}</html>`;
 
             let downloadCallIndex = 0;
             mockDownload.mockImplementation(async () => {
               const currentIndex = downloadCallIndex++;
-              const shouldFail =
-                currentIndex > 0 && currentIndex <= failureCount;
+              const shouldFail = currentIndex > 0 && currentIndex <= failureCount;
 
               if (shouldFail) {
                 return {
@@ -58,9 +57,7 @@ describe('Scraper Controller - Property-Based Tests', () => {
 
               return {
                 success: true,
-                content: Buffer.from(
-                  currentIndex === 0 ? html : '<html>Content</html>',
-                ),
+                content: Buffer.from(currentIndex === 0 ? html : '<html>Content</html>'),
                 contentType: 'text/html',
                 statusCode: 200,
               } as DownloadResult;
@@ -79,20 +76,17 @@ describe('Scraper Controller - Property-Based Tests', () => {
             });
 
             // Property: Total processed (downloaded + failed) should equal discovered
-            const totalProcessed =
-              result.stats.downloaded + result.stats.failed;
+            const totalProcessed = result.stats.downloaded + result.stats.failed;
             expect(totalProcessed).toBe(result.stats.discovered);
 
             // Property: Failed count should match expected failures
-            expect(result.stats.failed).toBe(
-              Math.min(failureCount, totalResources - 1),
-            );
+            expect(result.stats.failed).toBe(Math.min(failureCount, totalResources - 1));
 
             // Property: Failures array should have correct length
             expect(result.stats.failures).toHaveLength(result.stats.failed);
 
             // Property: All failures should have error messages
-            result.stats.failures.forEach(failure => {
+            result.stats.failures.forEach((failure) => {
               expect(failure.error).toBeTruthy();
               expect(failure.url).toBeTruthy();
             });
@@ -104,63 +98,59 @@ describe('Scraper Controller - Property-Based Tests', () => {
 
     it.skip('should continue processing when write operations fail', async () => {
       await fc.assert(
-        fc.asyncProperty(
-          fc.integer({ min: 1, max: 2 }),
-          async writeFailures => {
-            const totalResources = writeFailures + 2; // Ensure we have more resources than failures
-            const mockDownload = jest.spyOn(downloader, 'downloadResource');
-            const mockWrite = jest.spyOn(writer, 'writeFile');
+        fc.asyncProperty(fc.integer({ min: 1, max: 2 }), async (writeFailures) => {
+          const totalResources = writeFailures + 2; // Ensure we have more resources than failures
+          const mockDownload = jest.spyOn(downloader, 'downloadResource');
+          const mockWrite = jest.spyOn(writer, 'writeFile');
 
-            const urls = Array.from(
-              { length: totalResources - 1 },
-              (_, i) => `https://example.com/page${i}`,
-            );
-            const html = `<html>${urls.map(url => `<a href="${url}">Link</a>`).join('')}</html>`;
+          const urls = Array.from(
+            { length: totalResources - 1 },
+            (_, i) => `https://example.com/page${i}`,
+          );
+          const html = `<html>${urls.map((url) => `<a href="${url}">Link</a>`).join('')}</html>`;
 
-            mockDownload.mockImplementation(async (url: string) => {
-              const isInitial = url === 'https://example.com';
+          mockDownload.mockImplementation(async (url: string) => {
+            const isInitial = url === 'https://example.com';
+            return {
+              success: true,
+              content: Buffer.from(isInitial ? html : '<html></html>'),
+              contentType: 'text/html',
+              statusCode: 200,
+            } as DownloadResult;
+          });
+
+          let writeCallIndex = 0;
+          mockWrite.mockImplementation(async () => {
+            const currentIndex = writeCallIndex++;
+            const shouldFail = currentIndex < writeFailures;
+
+            if (shouldFail) {
               return {
-                success: true,
-                content: Buffer.from(isInitial ? html : '<html></html>'),
-                contentType: 'text/html',
-                statusCode: 200,
-              } as DownloadResult;
-            });
-
-            let writeCallIndex = 0;
-            mockWrite.mockImplementation(async () => {
-              const currentIndex = writeCallIndex++;
-              const shouldFail = currentIndex < writeFailures;
-
-              if (shouldFail) {
-                return {
-                  success: false,
-                  error: 'Disk full',
-                } as WriteResult;
-              }
-
-              return {
-                success: true,
-                path: '/output/file.html',
+                success: false,
+                error: 'Disk full',
               } as WriteResult;
-            });
+            }
 
-            const result = await scrape({
-              targetUrl: 'https://example.com',
-              outputDir: '/output',
-              maxDepth: null,
-              includeSubdomains: false,
-            });
+            return {
+              success: true,
+              path: '/output/file.html',
+            } as WriteResult;
+          });
 
-            // Property: Write failures should be counted as failed
-            expect(result.stats.failed).toBe(writeFailures);
+          const result = await scrape({
+            targetUrl: 'https://example.com',
+            outputDir: '/output',
+            maxDepth: null,
+            includeSubdomains: false,
+          });
 
-            // Property: Total processed should equal discovered
-            const totalProcessed =
-              result.stats.downloaded + result.stats.failed;
-            expect(totalProcessed).toBe(result.stats.discovered);
-          },
-        ),
+          // Property: Write failures should be counted as failed
+          expect(result.stats.failed).toBe(writeFailures);
+
+          // Property: Total processed should equal discovered
+          const totalProcessed = result.stats.downloaded + result.stats.failed;
+          expect(totalProcessed).toBe(result.stats.discovered);
+        }),
         { numRuns: 20 }, // Reduced from 100 for faster execution
       );
     });
@@ -192,29 +182,23 @@ describe('Scraper Controller - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 8,
           }),
-          async extensions => {
+          async (extensions) => {
             const mockDownload = jest.spyOn(downloader, 'downloadResource');
             const mockWrite = jest.spyOn(writer, 'writeFile');
 
-            const urls = extensions.map(
-              (ext, i) => `https://example.com/file${i}${ext}`,
-            );
-            const html = `<html>${urls.map(url => `<a href="${url}">Link</a>`).join('')}</html>`;
+            const urls = extensions.map((ext, i) => `https://example.com/file${i}${ext}`);
+            const html = `<html>${urls.map((url) => `<a href="${url}">Link</a>`).join('')}</html>`;
 
             mockDownload.mockImplementation(async (url: string) => {
               // Determine content type based on extension
               let contentType = 'application/octet-stream';
               if (url.match(/\.(html|htm)$/)) contentType = 'text/html';
-              else if (url.match(/\.(js|mjs)$/))
-                contentType = 'application/javascript';
+              else if (url.match(/\.(js|mjs)$/)) contentType = 'application/javascript';
               else if (url.match(/\.css$/)) contentType = 'text/css';
-              else if (url.match(/\.(png|jpg|jpeg|gif|webp|ico)$/))
-                contentType = 'image/png';
+              else if (url.match(/\.(png|jpg|jpeg|gif|webp|ico)$/)) contentType = 'image/png';
               else if (url.match(/\.svg$/)) contentType = 'image/svg+xml';
-              else if (url.match(/\.(woff|woff2|ttf|eot|otf)$/))
-                contentType = 'font/woff2';
-              else if (url.match(/\.(mp4|webm|ogg|mp3|wav)$/))
-                contentType = 'video/mp4';
+              else if (url.match(/\.(woff|woff2|ttf|eot|otf)$/)) contentType = 'font/woff2';
+              else if (url.match(/\.(mp4|webm|ogg|mp3|wav)$/)) contentType = 'video/mp4';
 
               // Initial URL returns HTML with links, others return empty/non-HTML content
               let content: string;
@@ -230,8 +214,7 @@ describe('Scraper Controller - Property-Based Tests', () => {
               return {
                 success: true,
                 content: Buffer.from(content),
-                contentType:
-                  url === 'https://example.com' ? 'text/html' : contentType,
+                contentType: url === 'https://example.com' ? 'text/html' : contentType,
                 statusCode: 200,
               } as DownloadResult;
             });
@@ -249,9 +232,7 @@ describe('Scraper Controller - Property-Based Tests', () => {
             });
 
             // Property: All discovered URLs should be processed
-            expect(result.stats.discovered).toBeGreaterThanOrEqual(
-              urls.length + 1,
-            ); // At least initial + urls
+            expect(result.stats.discovered).toBeGreaterThanOrEqual(urls.length + 1); // At least initial + urls
 
             // Property: All resources should be successfully downloaded
             expect(result.stats.downloaded).toBe(result.stats.discovered);
@@ -269,14 +250,12 @@ describe('Scraper Controller - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 4,
           }),
-          async extensions => {
+          async (extensions) => {
             const mockDownload = jest.spyOn(downloader, 'downloadResource');
             const mockWrite = jest.spyOn(writer, 'writeFile');
 
-            const urls = extensions.map(
-              (ext, i) => `https://example.com/page${i}${ext}`,
-            );
-            const html = `<html>${urls.map(url => `<a href="${url}">Link</a>`).join('')}</html>`;
+            const urls = extensions.map((ext, i) => `https://example.com/page${i}${ext}`);
+            const html = `<html>${urls.map((url) => `<a href="${url}">Link</a>`).join('')}</html>`;
 
             mockDownload.mockResolvedValue({
               success: true,
@@ -313,14 +292,12 @@ describe('Scraper Controller - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 4,
           }),
-          async extensions => {
+          async (extensions) => {
             const mockDownload = jest.spyOn(downloader, 'downloadResource');
             const mockWrite = jest.spyOn(writer, 'writeFile');
 
-            const urls = extensions.map(
-              (ext, i) => `https://example.com/script${i}${ext}`,
-            );
-            const html = `<html>${urls.map(url => `<script src="${url}"></script>`).join('')}</html>`;
+            const urls = extensions.map((ext, i) => `https://example.com/script${i}${ext}`);
+            const html = `<html>${urls.map((url) => `<script src="${url}"></script>`).join('')}</html>`;
 
             mockDownload.mockImplementation(async (url: string) => {
               const isInitial = url === 'https://example.com';
@@ -354,15 +331,7 @@ describe('Scraper Controller - Property-Based Tests', () => {
     });
 
     it('should download image files with various extensions', async () => {
-      const imageExtensions = [
-        '.png',
-        '.jpg',
-        '.jpeg',
-        '.gif',
-        '.svg',
-        '.webp',
-        '.ico',
-      ];
+      const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico'];
 
       await fc.assert(
         fc.asyncProperty(
@@ -370,14 +339,12 @@ describe('Scraper Controller - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 5,
           }),
-          async extensions => {
+          async (extensions) => {
             const mockDownload = jest.spyOn(downloader, 'downloadResource');
             const mockWrite = jest.spyOn(writer, 'writeFile');
 
-            const urls = extensions.map(
-              (ext, i) => `https://example.com/image${i}${ext}`,
-            );
-            const html = `<html>${urls.map(url => `<img src="${url}" />`).join('')}</html>`;
+            const urls = extensions.map((ext, i) => `https://example.com/image${i}${ext}`);
+            const html = `<html>${urls.map((url) => `<img src="${url}" />`).join('')}</html>`;
 
             mockDownload.mockImplementation(async (url: string) => {
               const isInitial = url === 'https://example.com';
@@ -419,14 +386,12 @@ describe('Scraper Controller - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 3,
           }),
-          async extensions => {
+          async (extensions) => {
             const mockDownload = jest.spyOn(downloader, 'downloadResource');
             const mockWrite = jest.spyOn(writer, 'writeFile');
 
-            const urls = extensions.map(
-              (ext, i) => `https://example.com/font${i}${ext}`,
-            );
-            const css = `@font-face { ${urls.map(url => `src: url('${url}');`).join(' ')} }`;
+            const urls = extensions.map((ext, i) => `https://example.com/font${i}${ext}`);
+            const css = `@font-face { ${urls.map((url) => `src: url('${url}');`).join(' ')} }`;
             const html = `<html><style>${css}</style></html>`;
 
             mockDownload.mockImplementation(async (url: string) => {
@@ -469,14 +434,12 @@ describe('Scraper Controller - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 3,
           }),
-          async extensions => {
+          async (extensions) => {
             const mockDownload = jest.spyOn(downloader, 'downloadResource');
             const mockWrite = jest.spyOn(writer, 'writeFile');
 
-            const urls = extensions.map(
-              (ext, i) => `https://example.com/media${i}${ext}`,
-            );
-            const html = `<html>${urls.map(url => `<source src="${url}">`).join('')}</html>`;
+            const urls = extensions.map((ext, i) => `https://example.com/media${i}${ext}`);
+            const html = `<html>${urls.map((url) => `<source src="${url}">`).join('')}</html>`;
 
             mockDownload.mockImplementation(async (url: string) => {
               const isInitial = url === 'https://example.com';

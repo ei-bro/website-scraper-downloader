@@ -2,22 +2,8 @@
  * Basic tests to verify type definitions and project setup
  */
 
+import type { CLIOptions, QueuedResource, Resource, ScraperConfig } from './index';
 import { ResourceType } from './index';
-import type {
-  Resource,
-  QueuedResource,
-  ScraperConfig,
-  DownloadSession,
-  ValidationResult,
-  DownloadResult,
-  ParsedResources,
-  WriteResult,
-  ProgressStats,
-  DownloadReport,
-  CLIOptions,
-  SessionStats,
-  FailureRecord,
-} from './index';
 
 describe('Type Definitions', () => {
   describe('ResourceType enum', () => {

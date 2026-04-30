@@ -34,7 +34,7 @@ Replace `ei-bro` with your GitHub user or organization.
 ## Code style
 
 - TypeScript, strict mode as configured in `tsconfig.json`.
-- ESLint rules in `.eslintrc.cjs` apply to `src/`.
+- [Biome](https://biomejs.dev/) is the default formatter and linter (`biome.json`). Run `npm run format` before large commits if you like. Legacy ESLint is available as `npm run lint:eslint` if needed.
 - Match existing patterns for naming, file layout, and tests.
 
 ## Reporting issues

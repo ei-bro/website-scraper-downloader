@@ -2,8 +2,8 @@
  * Unit tests for DownloadQueue class
  */
 
+import type { QueuedResource } from '../types';
 import { DownloadQueue } from './queue';
-import { QueuedResource } from '../types';
 
 describe('DownloadQueue', () => {
   let queue: DownloadQueue;
@@ -214,7 +214,7 @@ describe('DownloadQueue', () => {
       ];
 
       // Add only unvisited resources
-      discovered.forEach(resource => {
+      discovered.forEach((resource) => {
         if (!queue.hasVisited(resource.url)) {
           queue.enqueue(resource);
           queue.markVisited(resource.url);

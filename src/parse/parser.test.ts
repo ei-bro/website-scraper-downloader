@@ -2,7 +2,7 @@
  * Unit tests for HTML parser
  */
 
-import { parseHtml, parseCss } from './parser';
+import { parseCss, parseHtml } from './parser';
 
 describe('parseHtml', () => {
   const baseUrl = 'https://example.com/page.html';
@@ -80,8 +80,7 @@ describe('parseHtml', () => {
   });
 
   it('should skip data: URLs in CSS', () => {
-    const html =
-      '<style>.class { background: url("data:image/png;base64,abc"); }</style>';
+    const html = '<style>.class { background: url("data:image/png;base64,abc"); }</style>';
     const result = parseHtml(html, baseUrl);
     expect(result.links.length).toBe(0);
   });
@@ -93,9 +92,7 @@ describe('parseHtml', () => {
       <img src="/page">
     `;
     const result = parseHtml(html, baseUrl);
-    const pageLinks = result.links.filter(
-      link => link === 'https://example.com/page',
-    );
+    const pageLinks = result.links.filter((link) => link === 'https://example.com/page');
     expect(pageLinks.length).toBe(1);
   });
 
@@ -124,9 +121,7 @@ describe('parseHtml', () => {
   it('should handle URLs with query parameters', () => {
     const html = '<a href="page.html?id=123&sort=asc">Link</a>';
     const result = parseHtml(html, baseUrl);
-    expect(result.links).toContain(
-      'https://example.com/page.html?id=123&sort=asc',
-    );
+    expect(result.links).toContain('https://example.com/page.html?id=123&sort=asc');
   });
 
   it('should return baseUrl in result', () => {
@@ -167,8 +162,7 @@ describe('parseHtml', () => {
   });
 
   it('should handle multiple URLs in style attribute', () => {
-    const html =
-      '<div style="background: url(bg1.png), url(bg2.png)">Content</div>';
+    const html = '<div style="background: url(bg1.png), url(bg2.png)">Content</div>';
     const result = parseHtml(html, baseUrl);
     expect(result.links).toContain('https://example.com/bg1.png');
     expect(result.links).toContain('https://example.com/bg2.png');
@@ -254,7 +248,7 @@ describe('parseCss', () => {
     `;
     const result = parseCss(css, baseUrl);
     const commonLinks = result.links.filter(
-      link => link === 'https://example.com/styles/common.css',
+      (link) => link === 'https://example.com/styles/common.css',
     );
     expect(commonLinks.length).toBe(1);
   });

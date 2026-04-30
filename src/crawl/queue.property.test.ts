@@ -5,8 +5,8 @@
  */
 
 import * as fc from 'fast-check';
+import type { QueuedResource } from '../types';
 import { DownloadQueue } from './queue';
-import { QueuedResource } from '../types';
 
 describe('DownloadQueue - Property-Based Tests', () => {
   /**
@@ -31,12 +31,12 @@ describe('DownloadQueue - Property-Based Tests', () => {
       });
 
       fc.assert(
-        fc.property(discoveredResourcesArbitrary, discoveredResources => {
+        fc.property(discoveredResourcesArbitrary, (discoveredResources) => {
           const queue = new DownloadQueue();
           const expectedInQueue: QueuedResource[] = [];
 
           // Simulate discovery and queueing logic
-          discoveredResources.forEach(resource => {
+          discoveredResources.forEach((resource) => {
             // Only enqueue if not visited (simulating domain/depth filter pass)
             if (!queue.hasVisited(resource.url)) {
               queue.enqueue(resource);
@@ -49,7 +49,7 @@ describe('DownloadQueue - Property-Based Tests', () => {
           expect(queue.size()).toBe(expectedInQueue.length);
 
           // Property: All enqueued resources should be dequeued in FIFO order
-          expectedInQueue.forEach(expectedResource => {
+          expectedInQueue.forEach((expectedResource) => {
             const dequeued = queue.dequeue();
             expect(dequeued).not.toBeNull();
             expect(dequeued?.url).toBe(expectedResource.url);
@@ -76,11 +76,11 @@ describe('DownloadQueue - Property-Based Tests', () => {
             }),
             { minLength: 1, maxLength: 10 },
           ),
-          resources => {
+          (resources) => {
             const queue = new DownloadQueue();
 
             // Enqueue all resources
-            resources.forEach(resource => {
+            resources.forEach((resource) => {
               if (!queue.hasVisited(resource.url)) {
                 queue.enqueue(resource);
                 queue.markVisited(resource.url);
@@ -98,7 +98,7 @@ describe('DownloadQueue - Property-Based Tests', () => {
             }
 
             // Property: Number of dequeued items should match unique URLs
-            const uniqueUrls = new Set(resources.map(r => r.url));
+            const uniqueUrls = new Set(resources.map((r) => r.url));
             expect(count).toBe(uniqueUrls.size);
           },
         ),
@@ -114,7 +114,7 @@ describe('DownloadQueue - Property-Based Tests', () => {
             depth: fc.nat({ max: 10 }),
             referrer: fc.webUrl({ validSchemes: ['http', 'https'] }),
           }),
-          resource => {
+          (resource) => {
             const queue = new DownloadQueue();
 
             queue.enqueue(resource);
@@ -150,16 +150,16 @@ describe('DownloadQueue - Property-Based Tests', () => {
           }),
           { minLength: 2, maxLength: 20 },
         )
-        .chain(resources => {
+        .chain((resources) => {
           // Randomly duplicate some resources
           return fc
             .array(fc.integer({ min: 0, max: resources.length - 1 }), {
               minLength: 0,
               maxLength: 5,
             })
-            .map(duplicateIndices => {
+            .map((duplicateIndices) => {
               const withDuplicates = [...resources];
-              duplicateIndices.forEach(idx => {
+              duplicateIndices.forEach((idx) => {
                 withDuplicates.push(resources[idx]);
               });
               return withDuplicates;
@@ -167,12 +167,12 @@ describe('DownloadQueue - Property-Based Tests', () => {
         });
 
       fc.assert(
-        fc.property(resourcesWithDuplicatesArbitrary, resources => {
+        fc.property(resourcesWithDuplicatesArbitrary, (resources) => {
           const queue = new DownloadQueue();
           const uniqueUrls = new Set<string>();
 
           // Simulate the duplicate prevention logic
-          resources.forEach(resource => {
+          resources.forEach((resource) => {
             if (!queue.hasVisited(resource.url)) {
               queue.enqueue(resource);
               queue.markVisited(resource.url);
@@ -184,12 +184,12 @@ describe('DownloadQueue - Property-Based Tests', () => {
           expect(queue.size()).toBe(uniqueUrls.size);
 
           // Property: All URLs should be marked as visited
-          uniqueUrls.forEach(url => {
+          uniqueUrls.forEach((url) => {
             expect(queue.hasVisited(url)).toBe(true);
           });
 
           // Property: Attempting to check visited status for duplicate URLs returns true
-          resources.forEach(resource => {
+          resources.forEach((resource) => {
             expect(queue.hasVisited(resource.url)).toBe(true);
           });
 
@@ -252,16 +252,16 @@ describe('DownloadQueue - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 10,
           }),
-          urls => {
+          (urls) => {
             const queue = new DownloadQueue();
 
             // Mark some URLs as visited without enqueuing
-            urls.forEach(url => {
+            urls.forEach((url) => {
               queue.markVisited(url);
             });
 
             // Property: All URLs should be marked as visited
-            urls.forEach(url => {
+            urls.forEach((url) => {
               expect(queue.hasVisited(url)).toBe(true);
             });
 
@@ -270,7 +270,7 @@ describe('DownloadQueue - Property-Based Tests', () => {
             expect(queue.size()).toBe(0);
 
             // Property: Attempting to enqueue visited URLs should be skipped
-            urls.forEach(url => {
+            urls.forEach((url) => {
               if (!queue.hasVisited(url)) {
                 queue.enqueue({
                   url,
@@ -300,12 +300,12 @@ describe('DownloadQueue - Property-Based Tests', () => {
             }),
             { minLength: 1, maxLength: 10 },
           ),
-          resources => {
+          (resources) => {
             const queue = new DownloadQueue();
             const visitedUrls: string[] = [];
 
             // Enqueue and mark as visited
-            resources.forEach(resource => {
+            resources.forEach((resource) => {
               if (!queue.hasVisited(resource.url)) {
                 queue.enqueue(resource);
                 queue.markVisited(resource.url);
@@ -319,12 +319,12 @@ describe('DownloadQueue - Property-Based Tests', () => {
             }
 
             // Property: All URLs should still be marked as visited after dequeuing
-            visitedUrls.forEach(url => {
+            visitedUrls.forEach((url) => {
               expect(queue.hasVisited(url)).toBe(true);
             });
 
             // Property: Attempting to re-enqueue should be prevented
-            resources.forEach(resource => {
+            resources.forEach((resource) => {
               if (!queue.hasVisited(resource.url)) {
                 queue.enqueue(resource);
               }

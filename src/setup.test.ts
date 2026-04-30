@@ -19,7 +19,7 @@ describe('Property-Based Testing Setup', () => {
           ResourceType.Media,
           ResourceType.Other,
         ),
-        resourceType => {
+        (resourceType) => {
           // Property: ResourceType values should be non-empty strings
           expect(typeof resourceType).toBe('string');
           expect(resourceType.length).toBeGreaterThan(0);
@@ -32,7 +32,7 @@ describe('Property-Based Testing Setup', () => {
   it('should verify fast-check can generate URLs', () => {
     // Property: Generated URLs should be strings
     fc.assert(
-      fc.property(fc.webUrl(), url => {
+      fc.property(fc.webUrl(), (url) => {
         expect(typeof url).toBe('string');
         expect(url.length).toBeGreaterThan(0);
       }),
@@ -43,7 +43,7 @@ describe('Property-Based Testing Setup', () => {
   it('should verify fast-check can generate integers', () => {
     // Property: For any non-negative integer, it should be >= 0
     fc.assert(
-      fc.property(fc.nat(), n => {
+      fc.property(fc.nat(), (n) => {
         expect(n).toBeGreaterThanOrEqual(0);
       }),
       { numRuns: 100 },

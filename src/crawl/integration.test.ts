@@ -5,20 +5,15 @@
  * Validates: All requirements
  */
 
-import * as http from 'http';
 import * as fs from 'fs/promises';
+import * as http from 'http';
 import * as path from 'path';
-import { scrape, ScraperOptions } from './scraper';
+import { type ScraperOptions, scrape } from './scraper';
 
 describe('Integration Tests - End-to-End Flow', () => {
   let server: http.Server;
   let baseUrl: string;
-  const testOutputDir = path.join(
-    __dirname,
-    '..',
-    '..',
-    'test-integration-output',
-  );
+  const testOutputDir = path.join(__dirname, '..', '..', 'test-integration-output');
 
   // Mock HTML content with various resource types
   const mockIndexHtml = `
@@ -91,7 +86,7 @@ console.log('App loaded');
     'base64',
   );
 
-  beforeAll(done => {
+  beforeAll((done) => {
     // Create a simple HTTP server for testing
     server = http.createServer((req, res) => {
       const url = req.url || '/';
@@ -143,7 +138,7 @@ console.log('App loaded');
     });
   });
 
-  afterAll(done => {
+  afterAll((done) => {
     server.close(done);
   });
 
@@ -180,9 +175,7 @@ console.log('App loaded');
 
       // Verify statistics
       expect(result.stats.downloaded).toBeGreaterThan(0);
-      expect(result.stats.discovered).toBeGreaterThanOrEqual(
-        result.stats.downloaded,
-      );
+      expect(result.stats.discovered).toBeGreaterThanOrEqual(result.stats.downloaded);
 
       // Verify files were created
       const indexPath = path.join(testOutputDir, 'index.html');
@@ -373,8 +366,7 @@ console.log('App loaded');
           res.writeHead(200, { 'Content-Type': 'text/html' });
           res.end(htmlWithBrokenLink);
         } else {
-          // @ts-ignore
-          originalListener(req, res);
+          (originalListener as http.RequestListener)(req, res);
         }
       });
 
@@ -396,15 +388,12 @@ console.log('App loaded');
       expect(result.stats.downloaded).toBeGreaterThan(0);
 
       // Verify failure was recorded
-      const hasMissingFailure = result.stats.failures.some(f =>
-        f.url.includes('missing.html'),
-      );
+      const hasMissingFailure = result.stats.failures.some((f) => f.url.includes('missing.html'));
       expect(hasMissingFailure).toBe(true);
 
       // Restore original listener
       server.removeAllListeners('request');
-      // @ts-ignore
-      server.on('request', originalListener);
+      server.on('request', originalListener as http.RequestListener);
     }, 30000);
 
     it('should handle 500 errors gracefully', async () => {
@@ -426,8 +415,7 @@ console.log('App loaded');
           res.writeHead(200, { 'Content-Type': 'text/html' });
           res.end(htmlWithErrorLink);
         } else {
-          // @ts-ignore
-          originalListener(req, res);
+          (originalListener as http.RequestListener)(req, res);
         }
       });
 
@@ -450,8 +438,7 @@ console.log('App loaded');
 
       // Restore original listener
       server.removeAllListeners('request');
-      // @ts-ignore
-      server.on('request', originalListener);
+      server.on('request', originalListener as http.RequestListener);
     }, 30000);
   });
 
@@ -477,8 +464,7 @@ console.log('App loaded');
           res.writeHead(200, { 'Content-Type': 'image/png' });
           res.end(mockPng);
         } else {
-          // @ts-ignore
-          originalListener(req, res);
+          (originalListener as http.RequestListener)(req, res);
         }
       });
 
@@ -503,8 +489,7 @@ console.log('App loaded');
 
       // Restore original listener
       server.removeAllListeners('request');
-      // @ts-ignore
-      server.on('request', originalListener);
+      server.on('request', originalListener as http.RequestListener);
     }, 30000);
 
     it('should handle HTML with style tags', async () => {
@@ -531,8 +516,7 @@ console.log('App loaded');
           res.writeHead(200, { 'Content-Type': 'image/png' });
           res.end(mockPng);
         } else {
-          // @ts-ignore
-          originalListener(req, res);
+          (originalListener as http.RequestListener)(req, res);
         }
       });
 
@@ -548,11 +532,7 @@ console.log('App loaded');
       await scrape(options);
 
       // Verify image from style tag was downloaded
-      const styleTagBgPath = path.join(
-        testOutputDir,
-        'images',
-        'style-tag-bg.png',
-      );
+      const styleTagBgPath = path.join(testOutputDir, 'images', 'style-tag-bg.png');
       const styleTagBgExists = await fs
         .access(styleTagBgPath)
         .then(() => true)
@@ -561,8 +541,7 @@ console.log('App loaded');
 
       // Restore original listener
       server.removeAllListeners('request');
-      // @ts-ignore
-      server.on('request', originalListener);
+      server.on('request', originalListener as http.RequestListener);
     }, 30000);
 
     it('should handle relative URLs correctly', async () => {
@@ -592,8 +571,7 @@ console.log('App loaded');
           res.writeHead(200, { 'Content-Type': 'image/png' });
           res.end(mockPng);
         } else {
-          // @ts-ignore
-          originalListener(req, res);
+          (originalListener as http.RequestListener)(req, res);
         }
       });
 
@@ -613,8 +591,7 @@ console.log('App loaded');
 
       // Restore original listener
       server.removeAllListeners('request');
-      // @ts-ignore
-      server.on('request', originalListener);
+      server.on('request', originalListener as http.RequestListener);
     }, 30000);
   });
 
@@ -638,8 +615,7 @@ console.log('App loaded');
           res.writeHead(200, { 'Content-Type': 'text/html' });
           res.end(htmlWithExternalLink);
         } else {
-          // @ts-ignore
-          originalListener(req, res);
+          (originalListener as http.RequestListener)(req, res);
         }
       });
 
@@ -655,15 +631,12 @@ console.log('App loaded');
       const result = await scrape(options);
 
       // Should not have tried to download external.com
-      const hasExternalFailure = result.stats.failures.some(f =>
-        f.url.includes('external.com'),
-      );
+      const hasExternalFailure = result.stats.failures.some((f) => f.url.includes('external.com'));
       expect(hasExternalFailure).toBe(false);
 
       // Restore original listener
       server.removeAllListeners('request');
-      // @ts-ignore
-      server.on('request', originalListener);
+      server.on('request', originalListener as http.RequestListener);
     }, 30000);
   });
 });

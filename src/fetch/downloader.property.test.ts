@@ -4,8 +4,8 @@
  * Tests Requirements 11.4
  */
 
-import * as fc from 'fast-check';
 import axios from 'axios';
+import * as fc from 'fast-check';
 import { downloadResource } from './downloader';
 
 // Mock axios

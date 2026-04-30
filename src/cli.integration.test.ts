@@ -6,7 +6,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { main } from './cli';
-import { CLIOptions } from './types';
+import type { CLIOptions } from './types';
 
 // Mock the validator module
 jest.mock('./url/validator', () => ({
@@ -80,9 +80,7 @@ describe('CLI Integration', () => {
       };
 
       // Mock process.exit to prevent test from exiting
-      const mockExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as any);
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       await main(options);
 
@@ -98,9 +96,7 @@ describe('CLI Integration', () => {
         url: 'https://test-domain.com',
       };
 
-      const mockExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as any);
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       await main(options);
 
@@ -130,12 +126,8 @@ describe('CLI Integration', () => {
         output: testOutputDir,
       };
 
-      const mockExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as any);
-      const mockConsoleError = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await main(options);
 
@@ -158,12 +150,8 @@ describe('CLI Integration', () => {
         output: testOutputDir,
       };
 
-      const mockExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as any);
-      const mockConsoleError = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await main(options);
 
@@ -188,9 +176,7 @@ describe('CLI Integration', () => {
         includeSubdomains: true,
       };
 
-      const mockExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as any);
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       await main(options);
 
@@ -214,9 +200,7 @@ describe('CLI Integration', () => {
         output: testOutputDir,
       };
 
-      const mockExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as any);
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       await main(options);
 
@@ -243,9 +227,7 @@ describe('CLI Integration', () => {
         output: testOutputDir,
       };
 
-      const mockExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as any);
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       await main(options);
 

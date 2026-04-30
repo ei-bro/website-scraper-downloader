@@ -3,8 +3,8 @@
  * Tests Requirements 1.1, 1.2, 1.3, 9.1
  */
 
-import { validateUrl, isReachable, extractDomain } from './validator';
 import axios from 'axios';
+import { extractDomain, isReachable, validateUrl } from './validator';
 
 // Mock axios for isReachable tests
 jest.mock('axios');
@@ -35,9 +35,7 @@ describe('URL Validator', () => {
       it('should accept URL with query parameters', () => {
         const result = validateUrl('https://example.com/page?param=value');
         expect(result.valid).toBe(true);
-        expect(result.normalizedUrl).toBe(
-          'https://example.com/page?param=value',
-        );
+        expect(result.normalizedUrl).toBe('https://example.com/page?param=value');
       });
 
       it('should accept URL with port', () => {
@@ -197,15 +195,11 @@ describe('URL Validator', () => {
     });
 
     it('should throw error for invalid URL', () => {
-      expect(() => extractDomain('not a url')).toThrow(
-        'Cannot extract domain from invalid URL',
-      );
+      expect(() => extractDomain('not a url')).toThrow('Cannot extract domain from invalid URL');
     });
 
     it('should throw error for empty string', () => {
-      expect(() => extractDomain('')).toThrow(
-        'Cannot extract domain from invalid URL',
-      );
+      expect(() => extractDomain('')).toThrow('Cannot extract domain from invalid URL');
     });
   });
 });

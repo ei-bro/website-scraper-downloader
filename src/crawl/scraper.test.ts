@@ -2,10 +2,9 @@
  * Unit tests for scraper controller
  */
 
-import { scrape } from './scraper';
 import * as downloader from '../fetch/downloader';
 import * as writer from '../fs/writer';
-import * as fs from 'fs/promises';
+import { scrape } from './scraper';
 
 // Mock dependencies
 jest.mock('../fetch/downloader');
@@ -19,14 +18,12 @@ describe('Scraper Controller', () => {
 
   describe('scrape', () => {
     it('should download and save the initial URL', async () => {
-      const mockDownload = jest
-        .spyOn(downloader, 'downloadResource')
-        .mockResolvedValue({
-          success: true,
-          content: Buffer.from('<html></html>'),
-          contentType: 'text/html',
-          statusCode: 200,
-        });
+      const mockDownload = jest.spyOn(downloader, 'downloadResource').mockResolvedValue({
+        success: true,
+        content: Buffer.from('<html></html>'),
+        contentType: 'text/html',
+        statusCode: 200,
+      });
 
       const mockWrite = jest.spyOn(writer, 'writeFile').mockResolvedValue({
         success: true,
@@ -40,11 +37,7 @@ describe('Scraper Controller', () => {
         includeSubdomains: false,
       });
 
-      expect(mockDownload).toHaveBeenCalledWith(
-        'https://example.com',
-        undefined,
-        undefined,
-      );
+      expect(mockDownload).toHaveBeenCalledWith('https://example.com', undefined, undefined);
       expect(mockWrite).toHaveBeenCalledWith(
         'https://example.com',
         Buffer.from('<html></html>'),
@@ -59,9 +52,7 @@ describe('Scraper Controller', () => {
         .spyOn(downloader, 'downloadResource')
         .mockResolvedValueOnce({
           success: true,
-          content: Buffer.from(
-            '<html><a href="https://example.com/page1">Link</a></html>',
-          ),
+          content: Buffer.from('<html><a href="https://example.com/page1">Link</a></html>'),
           contentType: 'text/html',
           statusCode: 200,
         })
@@ -90,14 +81,12 @@ describe('Scraper Controller', () => {
     });
 
     it('should continue processing queue when a write fails', async () => {
-      const mockDownload = jest
-        .spyOn(downloader, 'downloadResource')
-        .mockResolvedValue({
-          success: true,
-          content: Buffer.from('<html></html>'),
-          contentType: 'text/html',
-          statusCode: 200,
-        });
+      const mockDownload = jest.spyOn(downloader, 'downloadResource').mockResolvedValue({
+        success: true,
+        content: Buffer.from('<html></html>'),
+        contentType: 'text/html',
+        statusCode: 200,
+      });
 
       const mockWrite = jest.spyOn(writer, 'writeFile').mockResolvedValue({
         success: false,
@@ -121,9 +110,7 @@ describe('Scraper Controller', () => {
         .spyOn(downloader, 'downloadResource')
         .mockResolvedValueOnce({
           success: true,
-          content: Buffer.from(
-            '<html><a href="https://example.com/page1">Link</a></html>',
-          ),
+          content: Buffer.from('<html><a href="https://example.com/page1">Link</a></html>'),
           contentType: 'text/html',
           statusCode: 200,
         })
@@ -151,16 +138,12 @@ describe('Scraper Controller', () => {
     });
 
     it('should respect domain boundaries', async () => {
-      const mockDownload = jest
-        .spyOn(downloader, 'downloadResource')
-        .mockResolvedValueOnce({
-          success: true,
-          content: Buffer.from(
-            '<html><a href="https://other.com/page">Link</a></html>',
-          ),
-          contentType: 'text/html',
-          statusCode: 200,
-        });
+      const mockDownload = jest.spyOn(downloader, 'downloadResource').mockResolvedValueOnce({
+        success: true,
+        content: Buffer.from('<html><a href="https://other.com/page">Link</a></html>'),
+        contentType: 'text/html',
+        statusCode: 200,
+      });
 
       const mockWrite = jest.spyOn(writer, 'writeFile').mockResolvedValue({
         success: true,
@@ -184,17 +167,13 @@ describe('Scraper Controller', () => {
         .spyOn(downloader, 'downloadResource')
         .mockResolvedValueOnce({
           success: true,
-          content: Buffer.from(
-            '<html><a href="https://example.com/page1">Link</a></html>',
-          ),
+          content: Buffer.from('<html><a href="https://example.com/page1">Link</a></html>'),
           contentType: 'text/html',
           statusCode: 200,
         })
         .mockResolvedValueOnce({
           success: true,
-          content: Buffer.from(
-            '<html><a href="https://example.com/page2">Link</a></html>',
-          ),
+          content: Buffer.from('<html><a href="https://example.com/page2">Link</a></html>'),
           contentType: 'text/html',
           statusCode: 200,
         });
@@ -265,9 +244,7 @@ describe('Scraper Controller', () => {
         })
         .mockResolvedValueOnce({
           success: true,
-          content: Buffer.from(
-            'body { background: url(https://example.com/bg.png); }',
-          ),
+          content: Buffer.from('body { background: url(https://example.com/bg.png); }'),
           contentType: 'text/css',
           statusCode: 200,
         })

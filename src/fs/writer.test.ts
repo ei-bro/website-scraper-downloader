@@ -3,14 +3,14 @@
  * Tests: sanitizeFilename, handleQueryParameters, urlToLocalPath, writeFile
  */
 
-import * as path from 'path';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 import {
-  sanitizeFilename,
+  createDirectoryStructure,
   handleQueryParameters,
+  sanitizeFilename,
   urlToLocalPath,
   writeFile,
-  createDirectoryStructure,
 } from './writer';
 
 describe('sanitizeFilename', () => {
@@ -44,9 +44,7 @@ describe('sanitizeFilename', () => {
   });
 
   it('should preserve valid filenames', () => {
-    expect(sanitizeFilename('valid-file_name.html')).toBe(
-      'valid-file_name.html',
-    );
+    expect(sanitizeFilename('valid-file_name.html')).toBe('valid-file_name.html');
   });
 });
 
@@ -62,16 +60,12 @@ describe('handleQueryParameters', () => {
   });
 
   it('should preserve file extension when adding query hash', () => {
-    const result = handleQueryParameters(
-      'https://example.com/file.html?id=123',
-    );
+    const result = handleQueryParameters('https://example.com/file.html?id=123');
     expect(result).toMatch(/^\/file_[a-zA-Z0-9]+\.html$/);
   });
 
   it('should handle URLs with multiple query parameters', () => {
-    const result = handleQueryParameters(
-      'https://example.com/page.html?a=1&b=2&c=3',
-    );
+    const result = handleQueryParameters('https://example.com/page.html?a=1&b=2&c=3');
     expect(result).toMatch(/^\/page_[a-zA-Z0-9]+\.html$/);
   });
 
@@ -90,26 +84,17 @@ describe('urlToLocalPath', () => {
   });
 
   it('should preserve directory structure', () => {
-    const result = urlToLocalPath(
-      'https://example.com/dir/subdir/file.html',
-      outputDir,
-    );
+    const result = urlToLocalPath('https://example.com/dir/subdir/file.html', outputDir);
     expect(result).toBe(path.join(outputDir, 'dir', 'subdir', 'file.html'));
   });
 
   it('should decode percent-encoded characters', () => {
-    const result = urlToLocalPath(
-      'https://example.com/my%20file.html',
-      outputDir,
-    );
+    const result = urlToLocalPath('https://example.com/my%20file.html', outputDir);
     expect(result).toBe(path.join(outputDir, 'my file.html'));
   });
 
   it('should handle URLs with query parameters', () => {
-    const result = urlToLocalPath(
-      'https://example.com/api?param=value',
-      outputDir,
-    );
+    const result = urlToLocalPath('https://example.com/api?param=value', outputDir);
     expect(result).toMatch(
       new RegExp(
         `^${outputDir.replace(/\\/g, '\\\\')}${path.sep.replace(/\\/g, '\\\\')}api_[a-zA-Z0-9]+$`,
@@ -128,19 +113,13 @@ describe('urlToLocalPath', () => {
   });
 
   it('should sanitize invalid characters in path', () => {
-    const result = urlToLocalPath(
-      'https://example.com/path:with:colons/file.html',
-      outputDir,
-    );
+    const result = urlToLocalPath('https://example.com/path:with:colons/file.html', outputDir);
     expect(result).toBe(path.join(outputDir, 'path_with_colons', 'file.html'));
   });
 
   it('should truncate long filenames', () => {
     const longName = 'a'.repeat(300);
-    const result = urlToLocalPath(
-      `https://example.com/${longName}.html`,
-      outputDir,
-    );
+    const result = urlToLocalPath(`https://example.com/${longName}.html`, outputDir);
     const filename = path.basename(result);
     expect(filename.length).toBeLessThanOrEqual(255);
     expect(filename).toMatch(/\.html$/);
@@ -196,11 +175,7 @@ describe('writeFile', () => {
 
   it('should write file with correct content', async () => {
     const content = Buffer.from('<html>test</html>');
-    const result = await writeFile(
-      'https://example.com/test.html',
-      content,
-      testDir,
-    );
+    const result = await writeFile('https://example.com/test.html', content, testDir);
 
     expect(result.success).toBe(true);
     expect(result.path).toBeDefined();
@@ -213,11 +188,7 @@ describe('writeFile', () => {
 
   it('should create directory structure automatically', async () => {
     const content = Buffer.from('test');
-    const result = await writeFile(
-      'https://example.com/dir1/dir2/file.html',
-      content,
-      testDir,
-    );
+    const result = await writeFile('https://example.com/dir1/dir2/file.html', content, testDir);
 
     expect(result.success).toBe(true);
     expect(result.path).toBeDefined();
@@ -234,11 +205,7 @@ describe('writeFile', () => {
   it('should prevent path traversal attacks', async () => {
     const content = Buffer.from('malicious');
     // Try to write outside output directory using ..
-    const result = await writeFile(
-      'https://example.com/../../../etc/passwd',
-      content,
-      testDir,
-    );
+    const result = await writeFile('https://example.com/../../../etc/passwd', content, testDir);
 
     // Should either fail or write within testDir
     if (result.success && result.path) {

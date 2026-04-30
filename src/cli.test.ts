@@ -112,25 +112,19 @@ describe('CLI Interface', () => {
     it('should throw error if --max-depth flag has no value', () => {
       const args = ['https://example.com', '--max-depth'];
 
-      expect(() => parseArguments(args)).toThrow(
-        '--max-depth requires a value',
-      );
+      expect(() => parseArguments(args)).toThrow('--max-depth requires a value');
     });
 
     it('should throw error if max depth is not a number', () => {
       const args = ['https://example.com', '--max-depth', 'abc'];
 
-      expect(() => parseArguments(args)).toThrow(
-        '--max-depth must be a non-negative integer',
-      );
+      expect(() => parseArguments(args)).toThrow('--max-depth must be a non-negative integer');
     });
 
     it('should throw error if max depth is negative', () => {
       const args = ['https://example.com', '--max-depth', '-1'];
 
-      expect(() => parseArguments(args)).toThrow(
-        '--max-depth must be a non-negative integer',
-      );
+      expect(() => parseArguments(args)).toThrow('--max-depth must be a non-negative integer');
     });
 
     it('should throw error for unknown arguments', () => {
@@ -140,15 +134,7 @@ describe('CLI Interface', () => {
     });
 
     it('should handle mixed flag styles', () => {
-      const args = [
-        '-u',
-        'https://example.com',
-        '-o',
-        './output',
-        '-d',
-        '1',
-        '-s',
-      ];
+      const args = ['-u', 'https://example.com', '-o', './output', '-d', '1', '-s'];
       const result = parseArguments(args);
 
       expect(result.url).toBe('https://example.com');

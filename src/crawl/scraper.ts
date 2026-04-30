@@ -3,14 +3,14 @@
  * Validates: Requirements 2.3, 11.5
  */
 
-import { DownloadQueue } from './queue';
 import { downloadResource } from '../fetch/downloader';
-import { parseHtml, parseCss } from '../parse/parser';
 import { writeFile } from '../fs/writer';
-import { shouldDownloadUrl, shouldFollowLinks } from './filter';
+import { parseCss, parseHtml } from '../parse/parser';
 import { ProgressReporter } from '../progress/progress';
-import { normalizeUrl, extractDomain } from '../url/validator';
-import { QueuedResource, SessionStats } from '../types';
+import type { QueuedResource, SessionStats } from '../types';
+import { extractDomain, normalizeUrl } from '../url/validator';
+import { shouldDownloadUrl, shouldFollowLinks } from './filter';
+import { DownloadQueue } from './queue';
 
 /**
  * Options for the scraper
@@ -105,11 +105,7 @@ export async function scrape(options: ScraperOptions): Promise<ScraperResult> {
     }
 
     // Write file to disk
-    const writeResult = await writeFile(
-      resource.url,
-      downloadResult.content!,
-      options.outputDir,
-    );
+    const writeResult = await writeFile(resource.url, downloadResult.content!, options.outputDir);
 
     if (!writeResult.success) {
       // Handle write failure - log and continue
@@ -144,9 +140,7 @@ export async function scrape(options: ScraperOptions): Promise<ScraperResult> {
           }
 
           // Check domain filtering
-          if (
-            !shouldDownloadUrl(link, targetDomain, options.includeSubdomains)
-          ) {
+          if (!shouldDownloadUrl(link, targetDomain, options.includeSubdomains)) {
             continue;
           }
 
@@ -159,10 +153,7 @@ export async function scrape(options: ScraperOptions): Promise<ScraperResult> {
           queue.enqueue(newResource);
           queue.markVisited(normalizedLink);
           stats.discovered++;
-        } catch (error) {
-          // Skip invalid URLs
-          continue;
-        }
+        } catch (_error) {}
       }
     }
   }
@@ -191,18 +182,11 @@ export async function scrape(options: ScraperOptions): Promise<ScraperResult> {
  * @param baseUrl - The URL of the current resource
  * @returns Array of discovered URLs
  */
-function extractLinks(
-  content: Buffer,
-  contentType: string,
-  baseUrl: string,
-): string[] {
+function extractLinks(content: Buffer, contentType: string, baseUrl: string): string[] {
   const textContent = content.toString('utf-8');
 
   // Parse HTML content
-  if (
-    contentType.includes('text/html') ||
-    contentType.includes('application/xhtml')
-  ) {
+  if (contentType.includes('text/html') || contentType.includes('application/xhtml')) {
     const parsed = parseHtml(textContent, baseUrl);
     return parsed.links;
   }

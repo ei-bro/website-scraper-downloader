@@ -2,11 +2,7 @@
  * Unit tests for domain filtering and depth tracking
  */
 
-import {
-  shouldDownloadUrl,
-  shouldProcessDepth,
-  shouldFollowLinks,
-} from './filter';
+import { shouldDownloadUrl, shouldFollowLinks, shouldProcessDepth } from './filter';
 
 describe('Domain Filtering', () => {
   describe('shouldDownloadUrl', () => {
@@ -14,63 +10,41 @@ describe('Domain Filtering', () => {
 
     describe('exact domain match', () => {
       it('should allow URL with exact domain match', () => {
-        expect(
-          shouldDownloadUrl('https://example.com/page', targetDomain, false),
-        ).toBe(true);
+        expect(shouldDownloadUrl('https://example.com/page', targetDomain, false)).toBe(true);
       });
 
       it('should allow URL with exact domain match regardless of subdomain setting', () => {
-        expect(
-          shouldDownloadUrl('https://example.com/page', targetDomain, true),
-        ).toBe(true);
+        expect(shouldDownloadUrl('https://example.com/page', targetDomain, true)).toBe(true);
       });
     });
 
     describe('different domain', () => {
       it('should reject URL from different domain when subdomains not included', () => {
-        expect(
-          shouldDownloadUrl('https://other.com/page', targetDomain, false),
-        ).toBe(false);
+        expect(shouldDownloadUrl('https://other.com/page', targetDomain, false)).toBe(false);
       });
 
       it('should reject URL from different domain when subdomains included', () => {
-        expect(
-          shouldDownloadUrl('https://other.com/page', targetDomain, true),
-        ).toBe(false);
+        expect(shouldDownloadUrl('https://other.com/page', targetDomain, true)).toBe(false);
       });
     });
 
     describe('subdomain handling', () => {
       it('should reject subdomain when includeSubdomains is false', () => {
-        expect(
-          shouldDownloadUrl(
-            'https://sub.example.com/page',
-            targetDomain,
-            false,
-          ),
-        ).toBe(false);
+        expect(shouldDownloadUrl('https://sub.example.com/page', targetDomain, false)).toBe(false);
       });
 
       it('should allow subdomain when includeSubdomains is true', () => {
-        expect(
-          shouldDownloadUrl('https://sub.example.com/page', targetDomain, true),
-        ).toBe(true);
+        expect(shouldDownloadUrl('https://sub.example.com/page', targetDomain, true)).toBe(true);
       });
 
       it('should allow nested subdomain when includeSubdomains is true', () => {
-        expect(
-          shouldDownloadUrl(
-            'https://deep.sub.example.com/page',
-            targetDomain,
-            true,
-          ),
-        ).toBe(true);
+        expect(shouldDownloadUrl('https://deep.sub.example.com/page', targetDomain, true)).toBe(
+          true,
+        );
       });
 
       it('should reject domain that contains target domain but is not a subdomain', () => {
-        expect(
-          shouldDownloadUrl('https://notexample.com/page', targetDomain, true),
-        ).toBe(false);
+        expect(shouldDownloadUrl('https://notexample.com/page', targetDomain, true)).toBe(false);
       });
     });
 

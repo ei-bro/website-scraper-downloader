@@ -2,8 +2,8 @@
  * Unit tests for ProgressReporter
  */
 
+import type { ProgressStats } from '../types';
 import { ProgressReporter } from './progress';
-import { ProgressStats } from '../types';
 
 describe('ProgressReporter', () => {
   let reporter: ProgressReporter;
@@ -103,9 +103,7 @@ describe('ProgressReporter', () => {
     it('should display zero values correctly', () => {
       reporter.display();
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Progress: 0/0 downloaded, 0 failed | Current: ',
-      );
+      expect(consoleLogSpy).toHaveBeenCalledWith('Progress: 0/0 downloaded, 0 failed | Current: ');
     });
 
     it('should display updated values', () => {
@@ -210,9 +208,7 @@ describe('ProgressReporter', () => {
 
       reporter.display();
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Progress: 3/5 downloaded, 0 failed | Current: ',
-      );
+      expect(consoleLogSpy).toHaveBeenCalledWith('Progress: 3/5 downloaded, 0 failed | Current: ');
     });
 
     it('should handle large numbers', () => {
@@ -230,8 +226,7 @@ describe('ProgressReporter', () => {
     });
 
     it('should handle long file URLs', () => {
-      const longUrl =
-        'https://example.com/very/long/path/to/some/deeply/nested/resource/file.html';
+      const longUrl = 'https://example.com/very/long/path/to/some/deeply/nested/resource/file.html';
       reporter.update({
         discovered: 10,
         downloaded: 5,

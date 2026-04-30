@@ -5,17 +5,12 @@
  * Validates: Requirements 12.2, 12.3
  */
 
-import * as path from 'path';
 import * as fs from 'fs/promises';
-import { scrape, ScraperOptions } from './crawl/scraper';
-import { validateUrl, isReachable, extractDomain } from './url/validator';
-import {
-  CLIOptions,
-  DownloadReport,
-  FailureRecord,
-  SessionStats,
-} from './types';
+import * as path from 'path';
+import { type ScraperOptions, scrape } from './crawl/scraper';
 import { generateReport, saveReport } from './report/report';
+import type { CLIOptions, DownloadReport, FailureRecord, SessionStats } from './types';
+import { extractDomain, isReachable, validateUrl } from './url/validator';
 
 /**
  * Parses command-line arguments into CLIOptions
@@ -61,7 +56,7 @@ export function parseArguments(args: string[]): CLIOptions {
           throw new Error('--max-depth requires a value');
         }
         const depth = parseInt(args[++i], 10);
-        if (isNaN(depth) || depth < 0) {
+        if (Number.isNaN(depth) || depth < 0) {
           throw new Error('--max-depth must be a non-negative integer');
         }
         options.maxDepth = depth;
@@ -91,9 +86,7 @@ export function parseArguments(args: string[]): CLIOptions {
 
   // Validate required arguments
   if (!options.url) {
-    throw new Error(
-      'URL is required. Use --url <url> or provide URL as first argument',
-    );
+    throw new Error('URL is required. Use --url <url> or provide URL as first argument');
   }
 
   return options;
@@ -134,7 +127,7 @@ function displayReport(stats: SessionStats, duration: number): void {
   const durationSeconds = (duration / 1000).toFixed(2);
   const totalSizeMB = (stats.totalBytes / (1024 * 1024)).toFixed(2);
 
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('Download Complete');
   console.log('='.repeat(60));
   console.log(`Duration: ${durationSeconds}s`);
@@ -156,7 +149,7 @@ function displayReport(stats: SessionStats, duration: number): void {
     }
   }
 
-  console.log('='.repeat(60) + '\n');
+  console.log(`${'='.repeat(60)}\n`);
 }
 
 /**
@@ -191,8 +184,7 @@ export async function main(options: CLIOptions): Promise<void> {
     console.log('Connection successful\n');
 
     // Determine output directory
-    const outputDir =
-      options.output || path.join('./downloads', extractDomain(targetUrl));
+    const outputDir = options.output || path.join('./downloads', extractDomain(targetUrl));
     console.log(`Output directory: ${outputDir}`);
 
     // Create output directory if it doesn't exist (Requirement 12.3)
@@ -249,10 +241,7 @@ export async function main(options: CLIOptions): Promise<void> {
     }
   } catch (error) {
     // Handle top-level errors
-    console.error(
-      '\nError:',
-      error instanceof Error ? error.message : 'Unknown error',
-    );
+    console.error('\nError:', error instanceof Error ? error.message : 'Unknown error');
     process.exit(1);
   }
 }
@@ -269,15 +258,12 @@ if (require.main === module) {
 
   try {
     const options = parseArguments(args);
-    main(options).catch(error => {
+    main(options).catch((error) => {
       console.error('Fatal error:', error);
       process.exit(1);
     });
   } catch (error) {
-    console.error(
-      'Error:',
-      error instanceof Error ? error.message : 'Unknown error',
-    );
+    console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
     printUsage();
     process.exit(1);
   }

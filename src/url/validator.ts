@@ -27,7 +27,7 @@ export function validateUrl(url: string): ValidationResult {
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(url.trim());
-  } catch (error) {
+  } catch (_error) {
     return {
       valid: false,
       error: 'Invalid URL format',
@@ -70,12 +70,12 @@ export async function isReachable(url: string): Promise<boolean> {
     // Use HEAD request for efficiency (doesn't download body)
     const response = await axios.head(url, {
       timeout: 10000, // 10 second timeout
-      validateStatus: status => status < 500, // Accept any status < 500 as "reachable"
+      validateStatus: (status) => status < 500, // Accept any status < 500 as "reachable"
     });
 
     // Consider 2xx, 3xx, and 4xx as reachable (server responded)
     return response.status < 500;
-  } catch (error) {
+  } catch (_error) {
     // Network errors, timeouts, DNS failures mean unreachable
     return false;
   }
@@ -94,7 +94,7 @@ export function extractDomain(url: string): string {
   try {
     const parsedUrl = new URL(url);
     return parsedUrl.hostname;
-  } catch (error) {
+  } catch (_error) {
     throw new Error(`Cannot extract domain from invalid URL: ${url}`);
   }
 }
@@ -146,7 +146,7 @@ export function normalizeUrl(url: string): string {
     parsedUrl.hash = '';
 
     return parsedUrl.href;
-  } catch (error) {
+  } catch (_error) {
     throw new Error(`Cannot normalize invalid URL: ${url}`);
   }
 }
@@ -161,10 +161,7 @@ export function normalizeUrl(url: string): string {
  *
  * Validates: Requirements 7.4, 8.3
  */
-export function resolveRelativeUrl(
-  baseUrl: string,
-  relativeUrl: string,
-): string {
+export function resolveRelativeUrl(baseUrl: string, relativeUrl: string): string {
   try {
     // If relativeUrl is already absolute, return it as-is
     try {
@@ -178,9 +175,7 @@ export function resolveRelativeUrl(
     const parsedBase = new URL(baseUrl);
     const resolved = new URL(relativeUrl, parsedBase);
     return resolved.href;
-  } catch (error) {
-    throw new Error(
-      `Cannot resolve relative URL "${relativeUrl}" against base "${baseUrl}"`,
-    );
+  } catch (_error) {
+    throw new Error(`Cannot resolve relative URL "${relativeUrl}" against base "${baseUrl}"`);
   }
 }

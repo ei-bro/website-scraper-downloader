@@ -226,10 +226,11 @@ npm test
 npm run test:watch
 ```
 
-### Lint Code
+### Lint and format (Biome)
 
 ```bash
 npm run lint
+npm run format
 ```
 
 ### Build Project

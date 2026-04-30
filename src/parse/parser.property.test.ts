@@ -5,8 +5,8 @@
  */
 
 import * as fc from 'fast-check';
-import { parseHtml, parseCss } from './parser';
 import { resolveRelativeUrl } from '../url/validator';
+import { parseCss, parseHtml } from './parser';
 
 describe('HTML Parser - Property-Based Tests', () => {
   /**
@@ -28,7 +28,7 @@ describe('HTML Parser - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 3,
           })
-          .map(parts => parts.join('/')),
+          .map((parts) => parts.join('/')),
         // Paths with file extensions
         fc
           .tuple(
@@ -42,7 +42,7 @@ describe('HTML Parser - Property-Based Tests', () => {
             minLength: 1,
             maxLength: 3,
           })
-          .map(parts => `/${parts.join('/')}`),
+          .map((parts) => `/${parts.join('/')}`),
       );
 
       // Generator for href-based tags (link, anchor)
@@ -58,10 +58,7 @@ describe('HTML Parser - Property-Based Tests', () => {
 
       // Generator for src-based tags (script, img, iframe, source)
       const srcTagArbitrary = fc
-        .tuple(
-          fc.constantFrom('script', 'img', 'iframe', 'source'),
-          urlArbitrary,
-        )
+        .tuple(fc.constantFrom('script', 'img', 'iframe', 'source'), urlArbitrary)
         .map(([tag, url]) => {
           if (tag === 'script') {
             return `<script src="${url}"></script>`;
@@ -99,50 +96,41 @@ describe('HTML Parser - Property-Based Tests', () => {
           fc.array(styleTagArbitrary, { minLength: 0, maxLength: 2 }),
         )
         .map(([hrefTags, srcTags, styleAttrs, styleTags]) => {
-          const allTags = [
-            ...hrefTags,
-            ...srcTags,
-            ...styleAttrs,
-            ...styleTags,
-          ];
+          const allTags = [...hrefTags, ...srcTags, ...styleAttrs, ...styleTags];
           return allTags.join('\n');
         });
 
       const baseUrlArbitrary = fc.webUrl({ validSchemes: ['http', 'https'] });
 
       fc.assert(
-        fc.property(
-          htmlDocumentArbitrary,
-          baseUrlArbitrary,
-          (html, baseUrl) => {
-            const result = parseHtml(html, baseUrl);
+        fc.property(htmlDocumentArbitrary, baseUrlArbitrary, (html, baseUrl) => {
+          const result = parseHtml(html, baseUrl);
 
-            // Property: Result should have links array
-            expect(Array.isArray(result.links)).toBe(true);
+          // Property: Result should have links array
+          expect(Array.isArray(result.links)).toBe(true);
 
-            // Property: Result should have baseUrl
-            expect(result.baseUrl).toBe(baseUrl);
+          // Property: Result should have baseUrl
+          expect(result.baseUrl).toBe(baseUrl);
 
-            // Property: All links should be strings
-            result.links.forEach(link => {
-              expect(typeof link).toBe('string');
-            });
+          // Property: All links should be strings
+          result.links.forEach((link) => {
+            expect(typeof link).toBe('string');
+          });
 
-            // Property: All links should be non-empty
-            result.links.forEach(link => {
-              expect(link.length).toBeGreaterThan(0);
-            });
+          // Property: All links should be non-empty
+          result.links.forEach((link) => {
+            expect(link.length).toBeGreaterThan(0);
+          });
 
-            // Property: Links should be unique (no duplicates)
-            const uniqueLinks = new Set(result.links);
-            expect(uniqueLinks.size).toBe(result.links.length);
+          // Property: Links should be unique (no duplicates)
+          const uniqueLinks = new Set(result.links);
+          expect(uniqueLinks.size).toBe(result.links.length);
 
-            // Property: All links should be valid URLs (absolute)
-            result.links.forEach(link => {
-              expect(() => new URL(link)).not.toThrow();
-            });
-          },
-        ),
+          // Property: All links should be valid URLs (absolute)
+          result.links.forEach((link) => {
+            expect(() => new URL(link)).not.toThrow();
+          });
+        }),
         { numRuns: 100 },
       );
     });
@@ -164,11 +152,8 @@ describe('HTML Parser - Property-Based Tests', () => {
                   fc.constantFrom('html', 'css', 'js', 'png', ''),
                 )
                 .map(([domain, pathParts, file, ext]) => {
-                  const path =
-                    pathParts.length > 0 ? `/${pathParts.join('/')}` : '';
-                  const filename = file
-                    ? `/${file}${ext ? '.' + ext : ''}`
-                    : '';
+                  const path = pathParts.length > 0 ? `/${pathParts.join('/')}` : '';
+                  const filename = file ? `/${file}${ext ? `.${ext}` : ''}` : '';
                   return `https://${domain}${path}${filename}`;
                 }),
             ),
@@ -223,11 +208,8 @@ describe('HTML Parser - Property-Based Tests', () => {
                   fc.constantFrom('js', 'png', 'jpg', 'mp4', ''),
                 )
                 .map(([domain, pathParts, file, ext]) => {
-                  const path =
-                    pathParts.length > 0 ? `/${pathParts.join('/')}` : '';
-                  const filename = file
-                    ? `/${file}${ext ? '.' + ext : ''}`
-                    : '';
+                  const path = pathParts.length > 0 ? `/${pathParts.join('/')}` : '';
+                  const filename = file ? `/${file}${ext ? `.${ext}` : ''}` : '';
                   return `https://${domain}${path}${filename}`;
                 }),
             ),
@@ -283,10 +265,7 @@ describe('HTML Parser - Property-Based Tests', () => {
           (fileSpecs, baseUrl) => {
             // Build style tag with known URLs
             const cssRules = fileSpecs
-              .map(
-                ([name, ext], idx) =>
-                  `.class${idx} { background: url("${name}.${ext}"); }`,
-              )
+              .map(([name, ext], idx) => `.class${idx} { background: url("${name}.${ext}"); }`)
               .join('\n');
             const html = `<style>${cssRules}</style>`;
 
@@ -295,16 +274,12 @@ describe('HTML Parser - Property-Based Tests', () => {
             // Property: All CSS URLs should be extracted and resolved
             fileSpecs.forEach(([name, ext]) => {
               const expectedUrl = `${baseUrl}/${name}.${ext}`;
-              const found = result.links.some(link =>
-                link.includes(`${name}.${ext}`),
-              );
+              const found = result.links.some((link) => link.includes(`${name}.${ext}`));
               expect(found).toBe(true);
             });
 
             // Property: Number of links should match number of unique files
-            const uniqueFiles = new Set(
-              fileSpecs.map(([name, ext]) => `${name}.${ext}`),
-            );
+            const uniqueFiles = new Set(fileSpecs.map(([name, ext]) => `${name}.${ext}`));
             expect(result.links.length).toBe(uniqueFiles.size);
           },
         ),
@@ -316,10 +291,7 @@ describe('HTML Parser - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           fc.array(
-            fc.tuple(
-              fc.stringMatching(/^[a-z0-9-]+$/),
-              fc.constantFrom('png', 'jpg', 'svg'),
-            ),
+            fc.tuple(fc.stringMatching(/^[a-z0-9-]+$/), fc.constantFrom('png', 'jpg', 'svg')),
             { minLength: 1, maxLength: 5 },
           ),
           fc.webUrl({ validSchemes: ['http', 'https'] }),
@@ -336,16 +308,12 @@ describe('HTML Parser - Property-Based Tests', () => {
 
             // Property: All CSS URLs from style attributes should be extracted
             fileSpecs.forEach(([name, ext]) => {
-              const found = result.links.some(link =>
-                link.includes(`${name}.${ext}`),
-              );
+              const found = result.links.some((link) => link.includes(`${name}.${ext}`));
               expect(found).toBe(true);
             });
 
             // Property: Number of links should match number of unique files
-            const uniqueFiles = new Set(
-              fileSpecs.map(([name, ext]) => `${name}.${ext}`),
-            );
+            const uniqueFiles = new Set(fileSpecs.map(([name, ext]) => `${name}.${ext}`));
             expect(result.links.length).toBe(uniqueFiles.size);
           },
         ),
@@ -369,7 +337,7 @@ describe('HTML Parser - Property-Based Tests', () => {
           (invalidUrls, baseUrl) => {
             // Build HTML with invalid URLs
             const html = invalidUrls
-              .map(url => {
+              .map((url) => {
                 if (url.startsWith('data:')) {
                   return `<style>.class { background: url("${url}"); }</style>`;
                 } else {
@@ -403,9 +371,8 @@ describe('HTML Parser - Property-Based Tests', () => {
                 fc.constantFrom('html', 'css', 'js', ''),
               )
               .map(([domain, pathParts, file, ext]) => {
-                const path =
-                  pathParts.length > 0 ? `/${pathParts.join('/')}` : '';
-                const filename = `/${file}${ext ? '.' + ext : ''}`;
+                const path = pathParts.length > 0 ? `/${pathParts.join('/')}` : '';
+                const filename = `/${file}${ext ? `.${ext}` : ''}`;
                 return `https://${domain}${path}${filename}`;
               }),
             {
@@ -416,38 +383,30 @@ describe('HTML Parser - Property-Based Tests', () => {
           fc.webUrl({ validSchemes: ['http', 'https'] }),
           (validUrls, baseUrl) => {
             // Build HTML with mix of valid and invalid URLs
-            const validHtml = validUrls
-              .map(url => `<a href="${url}">Link</a>`)
-              .join('\n');
+            const validHtml = validUrls.map((url) => `<a href="${url}">Link</a>`).join('\n');
             const invalidHtml = `
               <a href="#fragment">Fragment</a>
               <a href="javascript:void(0)">JS</a>
               <a href="mailto:test@example.com">Email</a>
             `;
-            const html = validHtml + '\n' + invalidHtml;
+            const html = `${validHtml}\n${invalidHtml}`;
 
             const result = parseHtml(html, baseUrl);
 
             // Property: Only valid URLs should be extracted (accounting for deduplication)
             const uniqueExpectedUrls = new Set(
-              validUrls.map(url => resolveRelativeUrl(baseUrl, url)),
+              validUrls.map((url) => resolveRelativeUrl(baseUrl, url)),
             );
             expect(result.links.length).toBe(uniqueExpectedUrls.size);
 
-            uniqueExpectedUrls.forEach(expectedUrl => {
+            uniqueExpectedUrls.forEach((expectedUrl) => {
               expect(result.links).toContain(expectedUrl);
             });
 
             // Property: Invalid URLs should not be present
-            expect(result.links.every(link => !link.startsWith('#'))).toBe(
-              true,
-            );
-            expect(
-              result.links.every(link => !link.startsWith('javascript:')),
-            ).toBe(true);
-            expect(
-              result.links.every(link => !link.startsWith('mailto:')),
-            ).toBe(true);
+            expect(result.links.every((link) => !link.startsWith('#'))).toBe(true);
+            expect(result.links.every((link) => !link.startsWith('javascript:'))).toBe(true);
+            expect(result.links.every((link) => !link.startsWith('mailto:'))).toBe(true);
           },
         ),
         { numRuns: 100 },
@@ -472,20 +431,12 @@ describe('HTML Parser - Property-Based Tests', () => {
               minLength: 1,
               maxLength: 3,
             })
-            .map(parts => parts.join('/')),
+            .map((parts) => parts.join('/')),
           // Paths with file extensions
           fc
             .tuple(
               fc.stringMatching(/^[a-z0-9-]+$/),
-              fc.constantFrom(
-                'css',
-                'png',
-                'jpg',
-                'svg',
-                'woff',
-                'woff2',
-                'ttf',
-              ),
+              fc.constantFrom('css', 'png', 'jpg', 'svg', 'woff', 'woff2', 'ttf'),
             )
             .map(([name, ext]) => `${name}.${ext}`),
           // Parent directory paths
@@ -501,26 +452,18 @@ describe('HTML Parser - Property-Based Tests', () => {
             }),
           // Root-relative paths
           fc
-            .tuple(
-              fc.stringMatching(/^[a-z0-9-]+$/),
-              fc.constantFrom('css', 'png', 'jpg', 'woff'),
-            )
+            .tuple(fc.stringMatching(/^[a-z0-9-]+$/), fc.constantFrom('css', 'png', 'jpg', 'woff'))
             .map(([name, ext]) => `/${name}.${ext}`),
           // Absolute URLs
           fc.webUrl({ validSchemes: ['http', 'https'] }),
         )
-        .filter(url => !url.includes("'") && !url.includes('"'));
+        .filter((url) => !url.includes("'") && !url.includes('"'));
 
       // Generator for @import statements
       const importStatementArbitrary = fc
         .tuple(
           cssUrlArbitrary,
-          fc.constantFrom(
-            'quoted',
-            'single-quoted',
-            'url-quoted',
-            'url-unquoted',
-          ),
+          fc.constantFrom('quoted', 'single-quoted', 'url-quoted', 'url-unquoted'),
           fc.option(fc.constantFrom('print', 'screen', '(max-width: 600px)'), {
             nil: null,
           }),
@@ -579,14 +522,11 @@ describe('HTML Parser - Property-Based Tests', () => {
           fc.array(urlFunctionArbitrary, { minLength: 0, maxLength: 3 }),
         )
         .map(([imports, urlFuncs]) => {
-          const importStatements = imports.map(i => i.statement).join('\n');
-          const rules = urlFuncs.map(u => u.rule).join('\n');
-          const allUrls = [
-            ...imports.map(i => i.url),
-            ...urlFuncs.map(u => u.url),
-          ];
+          const importStatements = imports.map((i) => i.statement).join('\n');
+          const rules = urlFuncs.map((u) => u.rule).join('\n');
+          const allUrls = [...imports.map((i) => i.url), ...urlFuncs.map((u) => u.url)];
           return {
-            css: importStatements + '\n' + rules,
+            css: `${importStatements}\n${rules}`,
             urls: allUrls,
           };
         });
@@ -594,42 +534,38 @@ describe('HTML Parser - Property-Based Tests', () => {
       const baseUrlArbitrary = fc.webUrl({ validSchemes: ['http', 'https'] });
 
       fc.assert(
-        fc.property(
-          cssDocumentArbitrary,
-          baseUrlArbitrary,
-          ({ css, urls }, baseUrl) => {
-            const result = parseCss(css, baseUrl);
+        fc.property(cssDocumentArbitrary, baseUrlArbitrary, ({ css, urls }, baseUrl) => {
+          const result = parseCss(css, baseUrl);
 
-            // Property: Result should have links array
-            expect(Array.isArray(result.links)).toBe(true);
+          // Property: Result should have links array
+          expect(Array.isArray(result.links)).toBe(true);
 
-            // Property: Result should have baseUrl
-            expect(result.baseUrl).toBe(baseUrl);
+          // Property: Result should have baseUrl
+          expect(result.baseUrl).toBe(baseUrl);
 
-            // Property: All links should be strings
-            result.links.forEach(link => {
-              expect(typeof link).toBe('string');
-            });
+          // Property: All links should be strings
+          result.links.forEach((link) => {
+            expect(typeof link).toBe('string');
+          });
 
-            // Property: All links should be non-empty
-            result.links.forEach(link => {
-              expect(link.length).toBeGreaterThan(0);
-            });
+          // Property: All links should be non-empty
+          result.links.forEach((link) => {
+            expect(link.length).toBeGreaterThan(0);
+          });
 
-            // Property: Links should be unique (no duplicates)
-            const uniqueLinks = new Set(result.links);
-            expect(uniqueLinks.size).toBe(result.links.length);
+          // Property: Links should be unique (no duplicates)
+          const uniqueLinks = new Set(result.links);
+          expect(uniqueLinks.size).toBe(result.links.length);
 
-            // Property: All links should be valid URLs (absolute)
-            result.links.forEach(link => {
-              expect(() => new URL(link)).not.toThrow();
-            });
+          // Property: All links should be valid URLs (absolute)
+          result.links.forEach((link) => {
+            expect(() => new URL(link)).not.toThrow();
+          });
 
-            // Property: Number of extracted links should match unique URLs in CSS
-            const uniqueUrls = new Set(urls);
-            expect(result.links.length).toBe(uniqueUrls.size);
-          },
-        ),
+          // Property: Number of extracted links should match unique URLs in CSS
+          const uniqueUrls = new Set(urls);
+          expect(result.links.length).toBe(uniqueUrls.size);
+        }),
         { numRuns: 100 },
       );
     });
@@ -640,17 +576,9 @@ describe('HTML Parser - Property-Based Tests', () => {
           fc.array(
             fc.tuple(
               fc
-                .tuple(
-                  fc.stringMatching(/^[a-z0-9-]+$/),
-                  fc.constantFrom('css'),
-                )
+                .tuple(fc.stringMatching(/^[a-z0-9-]+$/), fc.constantFrom('css'))
                 .map(([name, ext]) => `${name}.${ext}`),
-              fc.constantFrom(
-                'quoted',
-                'single-quoted',
-                'url-quoted',
-                'url-unquoted',
-              ),
+              fc.constantFrom('quoted', 'single-quoted', 'url-quoted', 'url-unquoted'),
             ),
             { minLength: 1, maxLength: 5 },
           ),
@@ -678,8 +606,8 @@ describe('HTML Parser - Property-Based Tests', () => {
             const uniqueUrls = new Set(urlFormatPairs.map(([url]) => url));
             expect(result.links.length).toBe(uniqueUrls.size);
 
-            uniqueUrls.forEach(url => {
-              const found = result.links.some(link => link.includes(url));
+            uniqueUrls.forEach((url) => {
+              const found = result.links.some((link) => link.includes(url));
               expect(found).toBe(true);
             });
           },
@@ -730,8 +658,8 @@ describe('HTML Parser - Property-Based Tests', () => {
             const uniqueUrls = new Set(urlFormatPairs.map(([url]) => url));
             expect(result.links.length).toBe(uniqueUrls.size);
 
-            uniqueUrls.forEach(url => {
-              const found = result.links.some(link => link.includes(url));
+            uniqueUrls.forEach((url) => {
+              const found = result.links.some((link) => link.includes(url));
               expect(found).toBe(true);
             });
           },
@@ -751,23 +679,18 @@ describe('HTML Parser - Property-Based Tests', () => {
           ),
           fc.uniqueArray(
             fc
-              .tuple(
-                fc.stringMatching(/^[a-z0-9-]+$/),
-                fc.constantFrom('png', 'jpg', 'svg'),
-              )
+              .tuple(fc.stringMatching(/^[a-z0-9-]+$/), fc.constantFrom('png', 'jpg', 'svg'))
               .map(([name, ext]) => `${name}.${ext}`),
             { minLength: 1, maxLength: 3 },
           ),
           fc.webUrl({ validSchemes: ['http', 'https'] }),
           (importUrls, urlFuncUrls, baseUrl) => {
             // Build CSS with both @import and url() functions
-            const imports = importUrls
-              .map(url => `@import "${url}";`)
-              .join('\n');
+            const imports = importUrls.map((url) => `@import "${url}";`).join('\n');
             const rules = urlFuncUrls
               .map((url, idx) => `.class${idx} { background: url("${url}"); }`)
               .join('\n');
-            const css = imports + '\n' + rules;
+            const css = `${imports}\n${rules}`;
 
             const result = parseCss(css, baseUrl);
 
@@ -775,8 +698,8 @@ describe('HTML Parser - Property-Based Tests', () => {
             const allUrls = [...importUrls, ...urlFuncUrls];
             expect(result.links.length).toBe(allUrls.length);
 
-            allUrls.forEach(url => {
-              const found = result.links.some(link => link.includes(url));
+            allUrls.forEach((url) => {
+              const found = result.links.some((link) => link.includes(url));
               expect(found).toBe(true);
             });
           },
@@ -819,10 +742,7 @@ describe('HTML Parser - Property-Based Tests', () => {
           fc.array(
             fc.tuple(
               fc
-                .tuple(
-                  fc.stringMatching(/^[a-z0-9-]+$/),
-                  fc.constantFrom('css'),
-                )
+                .tuple(fc.stringMatching(/^[a-z0-9-]+$/), fc.constantFrom('css'))
                 .map(([name, ext]) => `${name}.${ext}`),
               fc.constantFrom('print', 'screen', '(max-width: 600px)'),
             ),
@@ -841,8 +761,8 @@ describe('HTML Parser - Property-Based Tests', () => {
             const uniqueUrls = new Set(urlMediaPairs.map(([url]) => url));
             expect(result.links.length).toBe(uniqueUrls.size);
 
-            uniqueUrls.forEach(url => {
-              const found = result.links.some(link => link.includes(url));
+            uniqueUrls.forEach((url) => {
+              const found = result.links.some((link) => link.includes(url));
               expect(found).toBe(true);
             });
           },
@@ -860,7 +780,7 @@ describe('HTML Parser - Property-Based Tests', () => {
               fc.stringMatching(/^[a-z-]+$/),
               fc.oneof(
                 fc.stringMatching(/^[a-z]+$/),
-                fc.integer({ min: 0, max: 100 }).map(n => `${n}px`),
+                fc.integer({ min: 0, max: 100 }).map((n) => `${n}px`),
                 fc.constantFrom('red', 'blue', 'green', '#fff', '#000'),
               ),
             ),
@@ -870,10 +790,7 @@ describe('HTML Parser - Property-Based Tests', () => {
           (rules, baseUrl) => {
             // Build CSS with no URLs
             const css = rules
-              .map(
-                ([selector, property, value]) =>
-                  `.${selector} { ${property}: ${value}; }`,
-              )
+              .map(([selector, property, value]) => `.${selector} { ${property}: ${value}; }`)
               .join('\n');
 
             const result = parseCss(css, baseUrl);

@@ -22,7 +22,10 @@
     "start": "npm run build && node dist/cli.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint src --ext .ts"
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint:eslint": "eslint src --ext .ts"
   },
   "keywords": [
     "scraper",
@@ -33,6 +36,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

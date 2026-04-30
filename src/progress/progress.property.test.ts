@@ -5,8 +5,8 @@
  */
 
 import * as fc from 'fast-check';
+import type { ProgressStats } from '../types';
 import { ProgressReporter } from './progress';
-import { ProgressStats } from '../types';
 
 describe('ProgressReporter - Property-Based Tests', () => {
   /**
@@ -26,7 +26,7 @@ describe('ProgressReporter - Property-Based Tests', () => {
       });
 
       fc.assert(
-        fc.property(progressStatsArbitrary, stats => {
+        fc.property(progressStatsArbitrary, (stats) => {
           const reporter = new ProgressReporter();
 
           // Update the reporter with the stats
@@ -61,11 +61,11 @@ describe('ProgressReporter - Property-Based Tests', () => {
             }),
             { minLength: 1, maxLength: 20 },
           ),
-          statsSequence => {
+          (statsSequence) => {
             const reporter = new ProgressReporter();
 
             // Apply each stats update in sequence
-            statsSequence.forEach(stats => {
+            statsSequence.forEach((stats) => {
               reporter.update(stats);
 
               // Property: After each update, retrieved stats should match
@@ -97,10 +97,7 @@ describe('ProgressReporter - Property-Based Tests', () => {
           (totalDiscovered, failureCount) => {
             // Ensure downloaded + failed <= discovered
             const failed = Math.min(failureCount, totalDiscovered);
-            const downloaded = fc.sample(
-              fc.nat({ max: totalDiscovered - failed }),
-              1,
-            )[0];
+            const downloaded = fc.sample(fc.nat({ max: totalDiscovered - failed }), 1)[0];
 
             const stats: ProgressStats = {
               discovered: totalDiscovered,
@@ -119,9 +116,9 @@ describe('ProgressReporter - Property-Based Tests', () => {
             expect(retrievedStats.failed).toBe(failed);
 
             // Property: Invariant - downloaded + failed should not exceed discovered
-            expect(
-              retrievedStats.downloaded + retrievedStats.failed,
-            ).toBeLessThanOrEqual(retrievedStats.discovered);
+            expect(retrievedStats.downloaded + retrievedStats.failed).toBeLessThanOrEqual(
+              retrievedStats.discovered,
+            );
           },
         ),
         { numRuns: 100 },
@@ -200,7 +197,7 @@ describe('ProgressReporter - Property-Based Tests', () => {
               currentFile: 'https://example.com/failed.html',
             },
           ),
-          stats => {
+          (stats) => {
             const reporter = new ProgressReporter();
             reporter.update(stats);
 
@@ -228,11 +225,11 @@ describe('ProgressReporter - Property-Based Tests', () => {
             }),
             { minLength: 10, maxLength: 50 },
           ),
-          statsSequence => {
+          (statsSequence) => {
             const reporter = new ProgressReporter();
 
             // Simulate rapid updates (like in a real download session)
-            statsSequence.forEach(stats => {
+            statsSequence.forEach((stats) => {
               reporter.update(stats);
             });
 
