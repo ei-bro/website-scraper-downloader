@@ -4,313 +4,208 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Node.js 18+](https://img.shields.io/badge/node.js-%3E%3D18-339933)
 
-A command-line web scraper that recursively downloads all accessible files from a target website while preserving the original server directory structure.
+A **Node.js command-line tool** that crawls a website starting from a single URL, downloads linked assets, and writes them to disk while **preserving path structure** relative to the site. It is designed for **static or server-rendered pages**: it parses HTML and CSS for links and resources, does not execute JavaScript, and stays within **configurable domain and depth** rules.
+
+**Use cases:** mirroring a small site for offline reading, archiving public documentation, or pulling static assets for local testing—**only where you have permission** and the site’s terms allow it.
+
+---
+
+## Table of contents
+
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Command-line reference](#command-line-reference)
+- [Examples](#examples)
+- [Output and reports](#output-and-reports)
+- [Behavior and defaults](#behavior-and-defaults)
+- [Project layout](#project-layout)
+- [Limitations and ethics](#limitations-and-ethics)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+- [Contributing](#contributing)
+- [Security](#security)
+- [Support](#support)
+
+---
 
 ## Features
 
-- 📥 Downloads all file types (HTML, CSS, JS, images, fonts, media)
-- 📁 Preserves server folder structure locally
-- 🔍 Automatic resource discovery through HTML/CSS parsing
-- 🌐 Domain boundary respect (won't download the entire internet)
-- 🔄 Retry logic with exponential backoff for failed downloads
-- 📊 Progress reporting and download statistics
-- 🛡️ Robust error handling
-- ⚙️ Configurable depth limits and subdomain inclusion
+- Recursively discovers and downloads **HTML, CSS, JavaScript, images, fonts, and common media** by parsing link and reference attributes in HTML and CSS.
+- Writes files under a **target root** that mirrors URL paths; **deduplicates** URLs and tracks **per-session** progress.
+- **Domain scoping:** by default, only the **same hostname** as the start URL; optional **`--include-subdomains`** also allows any host of the form `*.<start-hostname>` (see [Behavior and defaults](#behavior-and-defaults)).
+- **Depth control:** optional **`--max-depth`** to cap how many link “hops” are followed from the start URL.
+- **Resilient HTTP layer:** per-request **timeout**, **retries** with exponential backoff for transient network failures; failed assets are recorded without stopping the whole run.
+- **Console summary** plus a **text report** file in the output directory.
+- **Connectivity check** before the crawl using a lightweight request to the target URL.
+
+## How it works
+
+1. **Validate** the URL and verify the host is reachable.
+2. **Seed** a queue with the start URL and mark it visited.
+3. **Dequeue** URLs one at a time, **GET** each resource (as binary), map the URL to a local path, and **write** the file.
+4. For **HTML** and **CSS** responses, **parse** embedded links (`href`, `src`, `url()`, etc.) and **enqueue** new URLs that pass domain, depth, and visit checks.
+5. On completion, print statistics and write **`download-report.txt`**.
+
+The crawler is **sequential** (one HTTP request active at a time), which keeps load predictable and reduces the chance of overwhelming a small server.
+
+## Requirements
+
+- **Node.js 18** or later (see `engines` in `package.json`)
+- **npm** (or another client compatible with this repo’s `package-lock.json`)
 
 ## Installation
 
-### Prerequisites
-
-- Node.js 18 or higher
-- npm or yarn
-
-### Setup
-
-1. Clone the repository
-2. Install dependencies (use `npm ci` for a clean install from the lockfile):
+Clone the repository, install dependencies, and compile TypeScript:
 
 ```bash
+git clone https://github.com/ei-bro/website-scraper-downloader.git
+cd website-scraper-downloader
 npm ci
-```
-
-3. Build the project:
-
-```bash
 npm run build
 ```
 
+For day-to-day use from a clone, you can run `node dist/cli.js` or use `npm start` (see [Usage](#usage)). To invoke the `scraper` command globally, use `npm link` from the project root after building.
+
 ## Usage
 
-### Basic Usage
-
-Download a website to the default directory (`./downloads/<domain>`):
+The package exposes a CLI as **`scraper`** (see `package.json` `bin`). After `npm run build`:
 
 ```bash
-npm start -- https://example.com
+node dist/cli.js <url> [options]
+# or, from package scripts (rebuilds then runs):
+npm start -- <url> [options]
 ```
 
-This creates `./downloads/example.com/` with all downloaded files.
+Omitting arguments prints help and exits with a non-zero code.
 
-```bash
-node dist/cli.js https://example.com
-```
+## Command-line reference
 
-Or use the binary directly after building:
+| Option | Description |
+|--------|-------------|
+| `<url>` | **Target URL** (can be the first positional argument). |
+| `-u`, `--url <url>` | Same as positional URL. |
+| `-o`, `--output <dir>` | **Output root directory.** Default: `./downloads/<domain>` (domain derived from the start URL). |
+| `-d`, `--max-depth <n>` | **Maximum depth** from the start URL (`0` = start page only). Default: **unlimited**. |
+| `-s`, `--include-subdomains` | Also fetch hosts **one level below** the start URL’s hostname (see [Subdomain matching](#subdomain-matching) below). |
+| `-h`, `--help` | Show help and exit. |
 
-```bash
-node dist/cli.js https://example.com
-```
+**Exit codes:** `0` if at least one file downloaded successfully; `1` on CLI/validation errors, unreachable URL, or when **every** download failed.
 
-### Command-Line Options
+## Examples
 
-```
-Usage:
-  scraper <url> [options]
-  scraper --url <url> [options]
+| Goal | Command |
+|------|---------|
+| Default output `./downloads/<domain>/` | `npm start -- https://example.com` |
+| Custom output folder | `npm start -- https://example.com -o ./site-mirror` |
+| Limit crawl to two levels of links | `npm start -- https://example.com --max-depth 2` |
+| Include cross-subdomain assets | `npm start -- https://www.example.com -s` |
+| Direct binary (after build) | `node dist/cli.js https://example.com -o ./out -d 3` |
 
-Options:
-  -u, --url <url>              Target URL to scrape (required)
-  -o, --output <dir>           Output directory (default: ./downloads/<domain>)
-  -d, --max-depth <number>     Maximum link depth (default: unlimited)
-  -s, --include-subdomains     Include subdomain resources
-  -h, --help                   Show help message
-
-Examples:
-  scraper https://example.com
-  scraper https://example.com --output ./downloads
-  scraper https://example.com --max-depth 2 --include-subdomains
-```
-
-### Examples
-
-#### 1. Download a website to default directory
-
-```bash
-npm start -- https://example.com
-```
-
-This creates `./downloads/example.com/` with all downloaded files.
-
-#### 2. Specify custom output directory
+**npm note:** use `--` before the URL and flags so options are passed to the app, not to npm:
 
 ```bash
 npm start -- https://example.com --output ./my-downloads
 ```
 
-#### 3. Limit crawl depth
+## Output and reports
 
-```bash
-npm start -- https://example.com --max-depth 2
-```
+### Directory layout
 
-This will only follow links up to 2 levels deep from the starting URL.
+Files are stored under the chosen output root (default `./downloads/<domain>/`) with paths derived from the URL. A run also produces:
 
-#### 4. Include subdomain resources
+- **`download-report.txt`** — session summary and failure details (see below).
 
-```bash
-npm start -- https://example.com --include-subdomains
-```
+An illustrative layout:
 
-or shorthand:
-
-```bash
-npm start -- https://example.com -s
-```
-
-This will download resources from subdomains like `blog.example.com`, `cdn.example.com`, etc.
-
-#### 5. Combine multiple options
-
-```bash
-npm start -- https://example.com --output ./downloads --max-depth 3 --include-subdomains
-```
-
-### Using the Binary Directly
-
-After building, you can also run the scraper directly:
-
-```bash
-node dist/cli.js https://example.com
-node dist/cli.js https://example.com -o ./downloads -d 2 -s
-```
-
-### Global Installation (Optional)
-
-To use the scraper from anywhere on your system:
-
-1. Link the package globally:
-
-```bash
-npm link
-```
-
-2. Now you can use it anywhere:
-
-```bash
-scraper https://example.com
-scraper https://example.com --output ./downloads --max-depth 2
-```
-
-## Output Structure
-
-The scraper preserves the original server directory structure inside `./downloads/<domain>/`:
-
-```
+```text
 downloads/
 └── example.com/
     ├── index.html
     ├── css/
-    │   ├── style.css
-    │   └── theme.css
-    ├── js/
-    │   ├── main.js
-    │   └── utils.js
-    ├── images/
-    │   ├── logo.png
-    │   └── banner.jpg
-    └── download-report.txt
+    │   └── style.css
+    ├── download-report.txt
+    └── …
 ```
 
-## Download Report
+### `download-report.txt`
 
-After completion, a `download-report.txt` file is generated in the output directory containing:
+The report is plain text. It includes aggregate counts (discovered, successful, failed), **total size**, **duration**, and a **per-URL list of failures** with error messages and HTTP status when available. If all downloads succeed, a short success line is included instead of a failure list. The file ends with an ISO **generation timestamp**.
 
-- Total files downloaded
-- Total size of downloaded files
-- Number of successful downloads
-- Number of failed downloads
-- List of failed downloads with error reasons
-- Total duration
+The CLI also prints a **concise summary** to the console (including up to 10 failed URLs, with a count if there are more).
 
-Example report:
+## Behavior and defaults
 
-```
-Website Scraper Download Report
-================================
+These are fixed in the current release (not exposed as CLI flags):
 
-Target URL: https://example.com
-Output Directory: /path/to/example.com
-Start Time: 2026-03-30T10:30:00.000Z
-End Time: 2026-03-30T10:32:15.000Z
-Duration: 2m 15s
+| Area | Value |
+|------|--------|
+| Per-request **timeout** | 30 seconds |
+| **Retries** for network-style failures (e.g. timeout, connection) | 3, with exponential backoff between attempts |
+| **User-Agent** | Custom identifier `WebScraperDownloader/1.0` (see downloader source) |
+| **Concurrency** | One request at a time |
 
-Summary:
---------
-Total Files: 127
-Successful Downloads: 125
-Failed Downloads: 2
-Total Size: 15.3 MB
+`robots.txt` is **not** read; the tool does not run browser JavaScript. Treat these limits when deciding whether a site is suitable to mirror and whether you are allowed to do so.
 
-Failed Downloads:
------------------
-1. https://example.com/old-image.png
-   Error: 404 Not Found
+### Subdomain matching
 
-2. https://example.com/restricted/admin.js
-   Error: 403 Forbidden
-```
+`--include-subdomains` allows a URL if its hostname is **equal** to the start URL’s hostname, or if it is **one DNS label** under that hostname: the candidate must satisfy `host === startHost` or `host.endsWith('.' + startHost)`.
+
+Examples:
+
+- Start at `https://example.com` → with `-s`, `https://www.example.com/…` and `https://cdn.example.com/…` are allowed.
+- Start at `https://www.example.com` → with `-s`, `https://api.www.example.com/…` is allowed; `https://cdn.example.com/…` is **not** (different branch of the name).
+
+If you need assets on a sibling host like `cdn.example.com` while the HTML is on `www.example.com`, prefer a **start URL** whose hostname is the **parent** (e.g. `example.com`) and enable `-s`, or mirror in two steps.
+
+## Project layout
+
+| Path | Role |
+|------|------|
+| `src/cli.ts` | Argument parsing, orchestration, exit codes |
+| `src/crawl/scraper.ts` | Crawl loop, queue, integration with download and parse |
+| `src/crawl/queue.ts` | FIFO queue and visited-URL set |
+| `src/crawl/filter.ts` | Domain and depth rules |
+| `src/fetch/downloader.ts` | HTTP GET (axios) with retries |
+| `src/parse/parser.ts` | HTML / CSS link extraction |
+| `src/fs/writer.ts` | Write buffers to mirrored paths |
+| `src/progress/progress.ts` | Console progress lines |
+| `src/report/report.ts` | Report text and file output |
+| `src/url/validator.ts` | URL validation, reachability, domain extraction |
+
+**Stack:** TypeScript, **axios**, **Jest** (and fast-check) for tests, **Biome** for lint/format.
+
+## Limitations and ethics
+
+- **No JavaScript execution** — content loaded or routed only in the browser after JS runs will not be discovered.
+- **No login flows or authenticated sessions** — not a headless browser.
+- **`robots.txt` is ignored**; respect site policy and **rate limits** yourself. Use **`--max-depth`** and run against servers you are permitted to use.
+- **SPAs and heavy client routing** may mirror poorly; start from URLs that return real HTML for pages you need.
 
 ## Development
 
-### Run Tests
-
 ```bash
-npm test
+npm run build      # Compile TypeScript to dist/
+npm test           # Unit and integration tests
+npm run test:watch # Jest watch mode
+npm run lint       # Biome check
+npm run format     # Biome format (write)
 ```
 
-### Run Tests in Watch Mode
-
-```bash
-npm run test:watch
-```
-
-### Lint and format (Biome)
-
-```bash
-npm run lint
-npm run format
-```
-
-### Build Project
-
-```bash
-npm run build
-```
-
-## Supported File Types
-
-The scraper automatically detects and downloads:
-
-- **HTML**: `.html`, `.htm`
-- **CSS**: `.css`
-- **JavaScript**: `.js`, `.mjs`
-- **Images**: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.ico`
-- **Fonts**: `.woff`, `.woff2`, `.ttf`, `.eot`, `.otf`
-- **Media**: `.mp4`, `.webm`, `.ogg`, `.mp3`, `.wav`
-
-## Error Handling
-
-The scraper handles various error scenarios gracefully:
-
-- **Network Errors**: Retries up to 3 times with exponential backoff
-- **404 Not Found**: Logs error and continues
-- **403 Forbidden**: Logs error and continues
-- **500 Server Error**: Logs error and continues
-- **Timeout**: Retries with backoff, then continues
-- **Invalid URLs**: Skips and logs warning
-
-Individual file failures won't stop the entire download process.
-
-## Configuration
-
-Default configuration values:
-
-- **Max Retries**: 3
-- **Timeout**: 30 seconds per request
-- **Max Concurrent Downloads**: 5
-- **User Agent**: Custom scraper user agent
-
-## Limitations
-
-- Does not execute JavaScript (downloads static files only)
-- Does not handle authentication/login-protected content
-- Does not respect robots.txt (use responsibly)
-- May not work with heavily JavaScript-rendered sites (SPA frameworks)
-
-## Best Practices
-
-1. **Use responsibly**: Only scrape websites you have permission to scrape
-2. **Respect rate limits**: The scraper includes built-in concurrency limits
-3. **Check terms of service**: Ensure scraping is allowed by the website
-4. **Use depth limits**: Prevent downloading too much content with `--max-depth`
-5. **Test first**: Try with a small depth limit before full scrape
+See [CONTRIBUTING.md](CONTRIBUTING.md) for pull requests and conventions.
 
 ## Troubleshooting
 
-### "Unknown argument" error
-
-Make sure to use `--` to separate npm arguments from script arguments:
-
-```bash
-npm start -- https://example.com --output ./downloads
-```
-
-### "Missing script: start" error
-
-Run `npm run build` first to compile TypeScript:
-
-```bash
-npm run build
-npm start -- https://example.com
-```
-
-### Permission errors
-
-Ensure you have write permissions for the output directory.
-
-### Network timeouts
-
-Some websites may have slow responses. The scraper will retry automatically.
+| Symptom | What to try |
+|--------|-------------|
+| `Unknown argument` or options ignored with `npm start` | Add `--` before the URL: `npm start -- https://…` |
+| Build or `start` errors referring to `dist/` | Run `npm run build` first |
+| Write errors | Ensure the output directory is writable |
+| Timeouts on slow hosts | Expected behavior triggers retries; extremely slow sites may still fail per URL |
+| Empty or partial mirror | Check depth, subdomain flag, and whether the site needs JS to reveal links |
 
 ## License
 
@@ -318,12 +213,12 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests, and the pull request process.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, testing, and the pull request process.
 
 ## Security
 
-See [SECURITY.md](SECURITY.md) for how to report vulnerabilities.
+To report a vulnerability, follow [SECURITY.md](SECURITY.md).
 
 ## Support
 
-For bugs and feature ideas, use [GitHub Issues](https://github.com/ei-bro/website-scraper-downloader/issues) after the repository is published. Replace the username in the URL as in the note at the top of this file.
+Bug reports and feature requests: [GitHub Issues](https://github.com/ei-bro/website-scraper-downloader/issues).
