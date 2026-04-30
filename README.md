@@ -6,8 +6,6 @@
 
 A command-line web scraper that recursively downloads all accessible files from a target website while preserving the original server directory structure.
 
-**Note:** After you [create the GitHub repository](https://github.com/new), replace `ei-bro` in this file, in `package.json`, and in `CONTRIBUTING.md` with your account or org name so badges and links resolve correctly.
-
 ## Features
 
 - 📥 Downloads all file types (HTML, CSS, JS, images, fonts, media)
