@@ -2,8 +2,27 @@
  * HTTP downloader module for fetching resources from URLs
  */
 
-import axios, { type AxiosError } from 'axios';
+import axios, { type AxiosError, AxiosHeaders, type AxiosHeaderValue } from 'axios';
 import type { DownloadResult } from '../types';
+
+function contentTypeString(value: AxiosHeaderValue | undefined): string {
+  if (value == null || typeof value === 'boolean') {
+    return 'application/octet-stream';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return (value[0] ?? value.join(', ')) || 'application/octet-stream';
+  }
+  if (typeof value === 'number') {
+    return String(value);
+  }
+  if (value instanceof AxiosHeaders) {
+    return contentTypeString(value.get('content-type'));
+  }
+  return 'application/octet-stream';
+}
 
 /**
  * Default configuration for HTTP requests
@@ -44,7 +63,7 @@ export async function downloadResource(
         return {
           success: true,
           content: Buffer.from(response.data),
-          contentType: response.headers['content-type'] || 'application/octet-stream',
+          contentType: contentTypeString(response.headers['content-type']),
           statusCode: response.status,
         };
       }
