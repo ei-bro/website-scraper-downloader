@@ -153,7 +153,7 @@ describe('urlToLocalPath', () => {
 });
 
 describe('createDirectoryStructure', () => {
-  const testDir = path.join(__dirname, '../test-output');
+  const testDir = path.join(__dirname, '../../test-output');
 
   afterEach(async () => {
     // Clean up test directory
@@ -183,7 +183,7 @@ describe('createDirectoryStructure', () => {
 });
 
 describe('writeFile', () => {
-  const testDir = path.join(__dirname, '../test-output');
+  const testDir = path.join(__dirname, '../../test-output');
 
   afterEach(async () => {
     // Clean up test directory

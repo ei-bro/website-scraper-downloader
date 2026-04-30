@@ -1,12 +1,12 @@
 # Website Scraper Downloader
 
-[![CI](https://github.com/YOUR_GITHUB_USERNAME/website-scraper-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME/website-scraper-downloader/actions/workflows/ci.yml)
+[![CI](https://github.com/ei-bro/website-scraper-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/ei-bro/website-scraper-downloader/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Node.js 18+](https://img.shields.io/badge/node.js-%3E%3D18-339933)
 
 A command-line web scraper that recursively downloads all accessible files from a target website while preserving the original server directory structure.
 
-**Note:** After you [create the GitHub repository](https://github.com/new), replace `YOUR_GITHUB_USERNAME` in this file, in `package.json`, and in `CONTRIBUTING.md` with your account or org name so badges and links resolve correctly.
+**Note:** After you [create the GitHub repository](https://github.com/new), replace `ei-bro` in this file, in `package.json`, and in `CONTRIBUTING.md` with your account or org name so badges and links resolve correctly.
 
 ## Features
 
@@ -327,4 +327,4 @@ See [SECURITY.md](SECURITY.md) for how to report vulnerabilities.
 
 ## Support
 
-For bugs and feature ideas, use [GitHub Issues](https://github.com/YOUR_GITHUB_USERNAME/website-scraper-downloader/issues) after the repository is published. Replace the username in the URL as in the note at the top of this file.
+For bugs and feature ideas, use [GitHub Issues](https://github.com/ei-bro/website-scraper-downloader/issues) after the repository is published. Replace the username in the URL as in the note at the top of this file.

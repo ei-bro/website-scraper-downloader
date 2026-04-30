@@ -5,7 +5,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { DownloadReport } from './types';
+import { DownloadReport } from '../types';
 
 /**
  * Generates a formatted text report from download statistics

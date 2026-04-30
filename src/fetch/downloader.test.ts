@@ -4,7 +4,7 @@
 
 import axios from 'axios';
 import { downloadResource } from './downloader';
-import { DownloadResult } from './types';
+import { DownloadResult } from '../types';
 
 // Mock axios
 jest.mock('axios');

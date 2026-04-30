@@ -8,7 +8,7 @@ import * as fc from 'fast-check';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { generateReport, saveReport } from './report';
-import { DownloadReport, FailureRecord } from './types';
+import { DownloadReport, FailureRecord } from '../types';
 
 describe('Report Generator - Property-Based Tests', () => {
   /**
@@ -282,7 +282,7 @@ describe('Report Generator - Property-Based Tests', () => {
    * **Validates: Requirements 15.5**
    */
   describe('Property 26: Report Persistence', () => {
-    const testOutputBase = path.join(__dirname, '..', 'test-output-pbt');
+    const testOutputBase = path.join(__dirname, '..', '..', 'test-output-pbt');
 
     beforeAll(async () => {
       await fs.mkdir(testOutputBase, { recursive: true });

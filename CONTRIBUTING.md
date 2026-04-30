@@ -8,14 +8,14 @@ Thanks for your interest in improving this project. Here is how to work on it ef
 - **npm** 9+ (or compatible)
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/website-scraper-downloader.git
+git clone https://github.com/ei-bro/website-scraper-downloader.git
 cd website-scraper-downloader
 npm ci
 npm run build
 npm test
 ```
 
-Replace `YOUR_GITHUB_USERNAME` with your GitHub user or organization.
+Replace `ei-bro` with your GitHub user or organization.
 
 ## Making changes
 
@@ -39,7 +39,7 @@ Replace `YOUR_GITHUB_USERNAME` with your GitHub user or organization.
 
 ## Reporting issues
 
-Use [GitHub Issues](https://github.com/YOUR_GITHUB_USERNAME/website-scraper-downloader/issues) for bugs, feature ideas, and questions. For security issues, see [SECURITY.md](SECURITY.md).
+Use [GitHub Issues](https://github.com/ei-bro/website-scraper-downloader/issues) for bugs, feature ideas, and questions. For security issues, see [SECURITY.md](SECURITY.md).
 
 ## License
 

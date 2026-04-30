@@ -3,7 +3,7 @@
  * Maintains the queue of URLs to download and tracks visited URLs
  */
 
-import { QueuedResource } from './types';
+import { QueuedResource } from '../types';
 
 /**
  * Manages the download queue and tracks visited URLs to prevent duplicates

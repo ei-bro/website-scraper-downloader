@@ -2,7 +2,7 @@
  * Basic tests to verify type definitions and project setup
  */
 
-import { ResourceType } from './types';
+import { ResourceType } from './index';
 import type {
   Resource,
   QueuedResource,
@@ -17,7 +17,7 @@ import type {
   CLIOptions,
   SessionStats,
   FailureRecord,
-} from './types';
+} from './index';
 
 describe('Type Definitions', () => {
   describe('ResourceType enum', () => {

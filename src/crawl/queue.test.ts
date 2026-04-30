@@ -3,7 +3,7 @@
  */
 
 import { DownloadQueue } from './queue';
-import { QueuedResource } from './types';
+import { QueuedResource } from '../types';
 
 describe('DownloadQueue', () => {
   let queue: DownloadQueue;

@@ -11,7 +11,7 @@ import { main } from './cli';
 import { CLIOptions } from './types';
 
 // Mock the scraper module to avoid actual network calls
-jest.mock('./scraper', () => ({
+jest.mock('./crawl/scraper', () => ({
   scrape: jest.fn().mockResolvedValue({
     stats: {
       discovered: 0,
@@ -25,7 +25,7 @@ jest.mock('./scraper', () => ({
 }));
 
 // Mock the validator module to avoid actual network calls
-jest.mock('./validator', () => ({
+jest.mock('./url/validator', () => ({
   validateUrl: jest.fn((url: string) => ({
     valid: true,
     normalizedUrl: url,

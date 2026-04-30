@@ -13,7 +13,12 @@ import { scrape, ScraperOptions } from './scraper';
 describe('Integration Tests - End-to-End Flow', () => {
   let server: http.Server;
   let baseUrl: string;
-  const testOutputDir = path.join(__dirname, '..', 'test-integration-output');
+  const testOutputDir = path.join(
+    __dirname,
+    '..',
+    '..',
+    'test-integration-output',
+  );
 
   // Mock HTML content with various resource types
   const mockIndexHtml = `

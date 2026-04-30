@@ -6,7 +6,7 @@
 
 import * as fc from 'fast-check';
 import { parseHtml, parseCss } from './parser';
-import { resolveRelativeUrl } from './validator';
+import { resolveRelativeUrl } from '../url/validator';
 
 describe('HTML Parser - Property-Based Tests', () => {
   /**

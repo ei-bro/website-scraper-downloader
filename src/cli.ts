@@ -7,15 +7,15 @@
 
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { scrape, ScraperOptions } from './scraper';
-import { validateUrl, isReachable, extractDomain } from './validator';
+import { scrape, ScraperOptions } from './crawl/scraper';
+import { validateUrl, isReachable, extractDomain } from './url/validator';
 import {
   CLIOptions,
   DownloadReport,
   FailureRecord,
   SessionStats,
 } from './types';
-import { generateReport, saveReport } from './report';
+import { generateReport, saveReport } from './report/report';
 
 /**
  * Parses command-line arguments into CLIOptions

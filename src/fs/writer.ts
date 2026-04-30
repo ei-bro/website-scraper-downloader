@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { WriteResult } from './types';
+import { WriteResult } from '../types';
 
 /**
  * Maximum filename length for most file systems

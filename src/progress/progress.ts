@@ -2,7 +2,7 @@
  * Progress reporter for tracking and displaying download progress
  */
 
-import { ProgressStats } from './types';
+import { ProgressStats } from '../types';
 
 /**
  * ProgressReporter class tracks and displays download progress in real-time

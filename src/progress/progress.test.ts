@@ -3,7 +3,7 @@
  */
 
 import { ProgressReporter } from './progress';
-import { ProgressStats } from './types';
+import { ProgressStats } from '../types';
 
 describe('ProgressReporter', () => {
   let reporter: ProgressReporter;

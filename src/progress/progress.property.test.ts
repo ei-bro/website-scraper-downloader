@@ -6,7 +6,7 @@
 
 import * as fc from 'fast-check';
 import { ProgressReporter } from './progress';
-import { ProgressStats } from './types';
+import { ProgressStats } from '../types';
 
 describe('ProgressReporter - Property-Based Tests', () => {
   /**

@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios';
-import type { ValidationResult } from './types';
+import type { ValidationResult } from '../types';
 
 /**
  * Validates a URL string for correct format

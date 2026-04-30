@@ -9,7 +9,7 @@ import { main } from './cli';
 import { CLIOptions } from './types';
 
 // Mock the validator module
-jest.mock('./validator', () => ({
+jest.mock('./url/validator', () => ({
   validateUrl: jest.fn((url: string) => ({
     valid: true,
     normalizedUrl: url,
@@ -26,7 +26,7 @@ jest.mock('./validator', () => ({
 }));
 
 // Mock the scraper module
-jest.mock('./scraper', () => ({
+jest.mock('./crawl/scraper', () => ({
   scrape: jest.fn(() =>
     Promise.resolve({
       stats: {
@@ -119,7 +119,7 @@ describe('CLI Integration', () => {
     });
 
     it('should handle invalid URL gracefully', async () => {
-      const { validateUrl } = require('./validator');
+      const { validateUrl } = require('./url/validator');
       validateUrl.mockReturnValueOnce({
         valid: false,
         error: 'Invalid URL format',
@@ -150,7 +150,7 @@ describe('CLI Integration', () => {
     });
 
     it('should handle unreachable URL gracefully', async () => {
-      const { isReachable } = require('./validator');
+      const { isReachable } = require('./url/validator');
       isReachable.mockResolvedValueOnce(false);
 
       const options: CLIOptions = {
@@ -178,7 +178,7 @@ describe('CLI Integration', () => {
     });
 
     it('should pass correct options to scraper', async () => {
-      const { scrape } = require('./scraper');
+      const { scrape } = require('./crawl/scraper');
       scrape.mockClear();
 
       const options: CLIOptions = {
@@ -226,7 +226,7 @@ describe('CLI Integration', () => {
     });
 
     it('should exit with code 1 when all downloads fail', async () => {
-      const { scrape } = require('./scraper');
+      const { scrape } = require('./crawl/scraper');
       scrape.mockResolvedValueOnce({
         stats: {
           discovered: 5,

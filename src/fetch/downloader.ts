@@ -3,7 +3,7 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import { DownloadResult } from './types';
+import { DownloadResult } from '../types';
 
 /**
  * Default configuration for HTTP requests

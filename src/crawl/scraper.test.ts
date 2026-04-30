@@ -3,13 +3,13 @@
  */
 
 import { scrape } from './scraper';
-import * as downloader from './downloader';
-import * as writer from './writer';
+import * as downloader from '../fetch/downloader';
+import * as writer from '../fs/writer';
 import * as fs from 'fs/promises';
 
 // Mock dependencies
-jest.mock('./downloader');
-jest.mock('./writer');
+jest.mock('../fetch/downloader');
+jest.mock('../fs/writer');
 jest.mock('fs/promises');
 
 describe('Scraper Controller', () => {

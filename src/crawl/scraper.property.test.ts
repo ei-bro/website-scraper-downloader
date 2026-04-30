@@ -6,13 +6,13 @@
 
 import * as fc from 'fast-check';
 import { scrape } from './scraper';
-import * as downloader from './downloader';
-import * as writer from './writer';
-import { DownloadResult, WriteResult } from './types';
+import * as downloader from '../fetch/downloader';
+import * as writer from '../fs/writer';
+import { DownloadResult, WriteResult } from '../types';
 
 // Mock dependencies
-jest.mock('./downloader');
-jest.mock('./writer');
+jest.mock('../fetch/downloader');
+jest.mock('../fs/writer');
 
 describe('Scraper Controller - Property-Based Tests', () => {
   beforeEach(() => {

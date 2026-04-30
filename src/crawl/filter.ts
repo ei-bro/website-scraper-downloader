@@ -3,7 +3,7 @@
  * Validates: Requirements 9.2, 9.3, 9.4, 14.2, 14.3
  */
 
-import { extractDomain } from './validator';
+import { extractDomain } from '../url/validator';
 
 /**
  * Checks if a URL should be downloaded based on domain filtering rules

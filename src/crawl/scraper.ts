@@ -4,13 +4,13 @@
  */
 
 import { DownloadQueue } from './queue';
-import { downloadResource } from './downloader';
-import { parseHtml, parseCss } from './parser';
-import { writeFile } from './writer';
+import { downloadResource } from '../fetch/downloader';
+import { parseHtml, parseCss } from '../parse/parser';
+import { writeFile } from '../fs/writer';
 import { shouldDownloadUrl, shouldFollowLinks } from './filter';
-import { ProgressReporter } from './progress';
-import { normalizeUrl, extractDomain } from './validator';
-import { QueuedResource, SessionStats } from './types';
+import { ProgressReporter } from '../progress/progress';
+import { normalizeUrl, extractDomain } from '../url/validator';
+import { QueuedResource, SessionStats } from '../types';
 
 /**
  * Options for the scraper

@@ -2,8 +2,8 @@
  * Resource parser for extracting URLs from HTML and CSS content
  */
 
-import { ParsedResources } from './types';
-import { resolveRelativeUrl } from './validator';
+import { ParsedResources } from '../types';
+import { resolveRelativeUrl } from '../url/validator';
 
 /**
  * Parses HTML content and extracts all resource URLs

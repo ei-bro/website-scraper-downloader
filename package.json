@@ -8,12 +8,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_GITHUB_USERNAME/website-scraper-downloader.git"
+    "url": "https://github.com/ei-bro/website-scraper-downloader.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_GITHUB_USERNAME/website-scraper-downloader/issues"
+    "url": "https://github.com/ei-bro/website-scraper-downloader/issues"
   },
-  "homepage": "https://github.com/YOUR_GITHUB_USERNAME/website-scraper-downloader#readme",
+  "homepage": "https://github.com/ei-bro/website-scraper-downloader#readme",
   "engines": {
     "node": ">=18.0.0"
   },

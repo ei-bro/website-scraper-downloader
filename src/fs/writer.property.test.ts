@@ -372,7 +372,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
    * **Validates: Requirements 7.1, 7.3**
    */
   describe('Property 9: Directory Structure Creation', () => {
-    const testBaseDir = path.join(__dirname, '../test-output-pbt');
+    const testBaseDir = path.join(__dirname, '../../test-output-pbt');
 
     afterEach(async () => {
       // Clean up test directory
@@ -466,7 +466,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
     });
 
     it('should prevent path traversal in writeFile', () => {
-      const testDir = path.join(__dirname, '../test-output-pbt-traversal');
+      const testDir = path.join(__dirname, '../../test-output-pbt-traversal');
 
       const pathTraversalUrlArbitrary = fc
         .tuple(
@@ -501,7 +501,7 @@ describe('Path Normalizer - Property-Based Tests', () => {
     afterAll(async () => {
       // Cleanup test directory
       try {
-        const testDir = path.join(__dirname, '../test-output-pbt-traversal');
+        const testDir = path.join(__dirname, '../../test-output-pbt-traversal');
         await fs.rm(testDir, { recursive: true, force: true });
       } catch (error) {
         // Ignore

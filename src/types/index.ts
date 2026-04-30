@@ -2,7 +2,7 @@
  * Core type definitions for the Website Scraper Downloader
  */
 
-import type { DownloadQueue } from './queue';
+import type { DownloadQueue } from '../crawl/queue';
 
 /**
  * Enum representing different types of resources that can be downloaded

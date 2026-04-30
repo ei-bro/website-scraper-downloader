@@ -5,7 +5,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { generateReport, saveReport } from './report';
-import { DownloadReport, FailureRecord } from './types';
+import { DownloadReport, FailureRecord } from '../types';
 
 describe('Report Generator', () => {
   describe('generateReport', () => {
@@ -131,7 +131,7 @@ describe('Report Generator', () => {
   });
 
   describe('saveReport', () => {
-    const testOutputDir = path.join(__dirname, '..', 'test-output-report');
+    const testOutputDir = path.join(__dirname, '..', '..', 'test-output-report');
 
     beforeEach(async () => {
       // Create test output directory
