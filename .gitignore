@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Local scrape / CLI test output (never commit downloaded sites)
+downloads/
+test-cli-output/
+
+# Test coverage
+coverage/
+
+# Jest / property-based test output dirs (ephemeral, do not commit)
+test-output-pbt/
+test-output-pbt-traversal/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+.kiro/
+.cursor/
+.vscode/
